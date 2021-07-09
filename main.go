@@ -1,12 +1,31 @@
 package main
 
-import "github.com/AnhHoangQuach/go-intern-spores/controllers"
+import (
+	"github.com/AnhHoangQuach/go-intern-spores/controllers"
+	"github.com/AnhHoangQuach/go-intern-spores/models"
+	"github.com/gin-gonic/gin"
+)
 
-var server = controllers.Server{}
 
 func main() {
 	// Connect DB
-	server.Initialize()
+	r := gin.Default()
 
-	server.Run(":8080")
+	// Connect to database
+	models.ConnectDB()
+
+	// Routes
+
+	// Define the user controller
+	user := new(controllers.UserController)
+
+	userApi := r.Group("/user-api")
+	{
+		// userApi.GET("/", controllers.FindAllUsers)
+		userApi.POST("/signup", user.SignUp)
+ 	}
+
+
+	// Run the server
+	r.Run(":8080")
 }

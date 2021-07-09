@@ -2,15 +2,12 @@ package models
 
 import (
 	"fmt"
-	"html"
 	"math/rand"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/AnhHoangQuach/go-intern-spores/utils"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type User struct {
@@ -25,76 +22,47 @@ type User struct {
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
-func HashPass(email, password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(email+password), 14)
-	return string(bytes), err
-}
+type UserModel struct{}
 
-func CheckPasswordHash(email, hashedPassword, password string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(email+password))
-}
 
-func (u *User) Save(db *gorm.DB) error {
-	err := db.Debug().Create(&u).Error
-	if (err != nil) {
-		return err
+func (u *UserModel) Save(user *User) error {
+	if err := DB.Create(&user).Error; err != nil {
+		return fmt.Errorf("Save user failed")
 	}
 	return nil
 }
 
-func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
-	users := []User{}
-	err := db.Debug().Model(&User{}).Limit(100).Find(&users).Error
-	if err != nil {
-		return &[]User{}, err
+func (u *UserModel) Update(user *User) error {
+	if err := DB.Where("email = ?", user.Email).Updates(User{Email: user.Email, Password: user.Password, Phone: user.Phone, Address: user.Address}).Error; err != nil {
+		return fmt.Errorf("Save user failed")
 	}
-	return &users, err
+	return nil
 }
 
-func (u *User) FindUserByID(db *gorm.DB, uid uint32) (*User, error) {
-	err := db.Debug().Model(User{}).Where("id = ?", uid).Take(&u).Error
-	if err != nil {
-		return &User{}, err
+
+func (u *UserModel) FindByEmail(email string) (*User, error) {
+	var result User
+	if err := DB.Where("email = ?", email).First(&result).Error; err != nil {
+		return nil, err
 	}
-	return u, err
+	return &result, nil
 }
 
-func (u *User) FindUserByEmail(db *gorm.DB, email string) (*User, error) {
-	err := db.Debug().Model(User{}).Where("email = ?", email).Take(&u).Error
-	if err != nil {
-		return &User{}, err
-	}
-	return u, err
-}
-
-func (u *User) Delete(db *gorm.DB, uid uint32) (int64, error) {
-
-	db = db.Debug().Model(&User{}).Where("id = ?", uid).Take(&User{}).Delete(&User{})
-
-	if db.Error != nil {
-		return 0, db.Error
-	}
-	return db.RowsAffected, nil
-}
-
-// randToken generates a random hex value.
 func RandomSixDigits(min, max int) string {
 	rand.Seed(time.Now().UnixNano())
 	randCode := strconv.Itoa(min + rand.Intn(max-min))
 	return randCode
 }
 
-func (u *User) Prepare() {
-	u.ID = 0
-	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
-	u.CreatedAt = time.Now()
-	u.UpdatedAt = time.Now()
+func HashPass(email, password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(email+password), 14)
+	return string(bytes), err
 }
 
-func (u *User) SignUp(db *gorm.DB, email, password, phone, address string) error {
-	user, err := u.FindUserByEmail(db, email)
+func (u *UserModel) SignUp(email, password, phone, address string) error {
+	user, err := u.FindByEmail(email)
 	verify_token := RandomSixDigits(100000, 999999)
-	subject := "Token For Verify Email"
+	subject := "Email Verify Token"
 	if err == nil && user != nil {
 		return fmt.Errorf("User existed")
 	}
@@ -110,17 +78,15 @@ func (u *User) SignUp(db *gorm.DB, email, password, phone, address string) error
 		fmt.Errorf("Send email failed %v", err)
 	}
 
-	user.Prepare()
-
-	user = &User{
+	user = &User {
 		Email:       email,
 		Password:    hashPass,
-		Phone: 		phone,
+		Phone: phone,
 		Address: address,
 		VerifyToken: verify_token,
 	}
 
-	err = u.Save(db)
+	err = u.Save(user)
 	if err != nil {
 		return fmt.Errorf("Sign up failed %v", err)
 	}

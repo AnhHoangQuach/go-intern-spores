@@ -1,34 +1,60 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/AnhHoangQuach/go-intern-spores/models"
 	"github.com/AnhHoangQuach/go-intern-spores/utils"
-	"github.com/asaskevich/govalidator"
+	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) signup(w http.ResponseWriter, r *http.Request) {
-	user := models.User{}
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		utils.ERROR(w, 400, err)
-	}
+type RegisterUserInput struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+	Phone     string    `json:"phone" binding:"required"`
+	Address   string    `json:"address" binding:"required"`
+}
 
-	if govalidator.IsNull(user.Email) || govalidator.IsNull(user.Password) {
-		utils.MessageError(w, 400, "Body is invalid")
-	}
+// Import the userModel from the models
+var userModel = new(models.UserModel)
 
-	user.Prepare()
-	err = user.SignUp(server.DB, user.Email, user.Password, user.Phone, user.Address)
-	if err != nil {
-		utils.ERROR(w, http.StatusInternalServerError, err)
+type UserController struct{}
+
+func (u *UserController) SignUp(c *gin.Context) {
+	var input RegisterUserInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	utils.JSON(w, http.StatusCreated, "Please check code in your email")
+
+	err := userModel.SignUp(input.Email, input.Password, input.Phone, input.Address)
+
+	if err != nil {
+        c.JSON(400, gin.H{"message": "Problem creating an account"})
+        c.Abort()
+        return
+    }
+
+	res := utils.BuildResponse(true, "Please check email to verify account", input)
+
+    c.JSON(http.StatusOK, res)
 }
 
-func (server *Server) home(w http.ResponseWriter, r *http.Request) {
-	utils.JSON(w, http.StatusOK, "Welcome To This Awesome API")
-}
+// func FindAllUsers(c *gin.Context) {
+// 	var users []models.User
+// 	models.DB.Find(&users)
+
+// 	c.JSON(http.StatusOK, gin.H{"data": users})
+// }
+
+// func Delete(c *gin.Context) {
+// 	var user models.User
+// 	if err := models.DB.Where("email = ?", c.Param("email")).First(&user).Error; err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+// 		return
+// 	}
+
+// 	models.DB.Delete(&user)
+
+// 	c.JSON(http.StatusOK, gin.H{"data": true})
+// }
