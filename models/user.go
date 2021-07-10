@@ -57,6 +57,10 @@ func HashPass(email, password string) (string, error) {
 	return string(bytes), err
 }
 
+func CheckPasswordHash(email, hashedPassword, password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(email+password))
+}
+
 func (u *UserModel) SignUp(email, password, phone, address string) error {
 	user, err := u.FindByEmail(email)
 	verify_token := RandomSixDigits(100000, 999999)
@@ -107,4 +111,38 @@ func (u *UserModel) ActiveUser(email, verify_token string) error {
 		return err
 	}
 	return nil
+}
+
+func (u *UserModel) LoginHandler(email string, password string) (*User, error) {
+	user, err := u.FindByEmail(email)
+	// user not sign up
+	if err != nil {
+		return nil, fmt.Errorf("This account does not exist")
+	}
+
+	err = CheckPasswordHash(email, user.Password, password)
+	if err != nil {
+		return nil, fmt.Errorf("Password is wrong")
+	}
+
+	if user.VerifyToken != "" {
+		verify_token := RandomSixDigits(100000, 999999)
+
+		subject := "Email Verify Token"
+
+		m := utils.NewMailSender([]string{user.Email}, subject)
+		err = m.Send("./utils/mailContent.html", map[string]string{"token": verify_token})
+		if err != nil {
+			fmt.Errorf("Send email failed %v", err)
+		}
+
+		user.VerifyToken = verify_token
+		err = u.Save(user)
+		if err != nil {
+			fmt.Errorf("Save failed %v", err)
+		}
+		return nil, fmt.Errorf("This account hasn't been activated, a verification code has been sent to your email, please check")
+	}
+
+	return user, nil
 }
