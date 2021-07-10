@@ -11,19 +11,18 @@ import (
 )
 
 type User struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Email     string    `gorm:"size:100;not null;unique" json:"email"`
-	Password  string    `gorm:"size:100;not null;" json:"password"`
-	Phone     string    `gorm:"size:255;not null;unique" json:"phone"`
-	Address   string    `gorm:"size:255;not null" json:"address"`
+	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	Email       string    `gorm:"size:100;not null;unique" json:"email"`
+	Password    string    `gorm:"size:100;not null;" json:"password"`
+	Phone       string    `gorm:"size:255;not null;unique" json:"phone"`
+	Address     string    `gorm:"size:255;not null" json:"address"`
 	VerifyToken string    `gorm:"size:255;not null" json:"verify_token"`
-	ResetToken string    `gorm:"size:255;not null" json:"reset_token"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ResetToken  string    `gorm:"size:255;not null" json:"reset_token"`
+	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 type UserModel struct{}
-
 
 func (u *UserModel) Save(user *User) error {
 	if err := DB.Create(&user).Error; err != nil {
@@ -33,12 +32,11 @@ func (u *UserModel) Save(user *User) error {
 }
 
 func (u *UserModel) Update(user *User) error {
-	if err := DB.Where("email = ?", user.Email).Updates(User{Email: user.Email, Password: user.Password, Phone: user.Phone, Address: user.Address}).Error; err != nil {
+	if err := DB.Model(&user).Where("email = ?", user.Email).Save(&user).Error; err != nil {
 		return fmt.Errorf("Save user failed")
 	}
 	return nil
 }
-
 
 func (u *UserModel) FindByEmail(email string) (*User, error) {
 	var result User
@@ -78,11 +76,11 @@ func (u *UserModel) SignUp(email, password, phone, address string) error {
 		fmt.Errorf("Send email failed %v", err)
 	}
 
-	user = &User {
+	user = &User{
 		Email:       email,
 		Password:    hashPass,
-		Phone: phone,
-		Address: address,
+		Phone:       phone,
+		Address:     address,
 		VerifyToken: verify_token,
 	}
 
@@ -91,5 +89,22 @@ func (u *UserModel) SignUp(email, password, phone, address string) error {
 		return fmt.Errorf("Sign up failed %v", err)
 	}
 
+	return nil
+}
+
+func (u *UserModel) ActiveUser(email, verify_token string) error {
+	user, err := u.FindByEmail(email)
+	if err != nil {
+		return fmt.Errorf("Failed Email")
+	}
+
+	if user.VerifyToken != verify_token {
+		return fmt.Errorf("Verify token is failed")
+	}
+	user.VerifyToken = ""
+	err = u.Update(user)
+	if err != nil {
+		return err
+	}
 	return nil
 }

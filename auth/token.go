@@ -88,4 +88,3 @@ func Pretty(data interface{}) {
 
 	fmt.Println(string(b))
 }
-

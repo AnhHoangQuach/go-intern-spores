@@ -11,8 +11,13 @@ import (
 type RegisterUserInput struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
-	Phone     string    `json:"phone" binding:"required"`
-	Address   string    `json:"address" binding:"required"`
+	Phone    string `json:"phone" binding:"required"`
+	Address  string `json:"address" binding:"required"`
+}
+
+type VerifyInfo struct {
+	Email       string `json:"email" binding:"required"`
+	VerifyToken string `json:"verify_token" binding:"required"`
 }
 
 // Import the userModel from the models
@@ -30,14 +35,33 @@ func (u *UserController) SignUp(c *gin.Context) {
 	err := userModel.SignUp(input.Email, input.Password, input.Phone, input.Address)
 
 	if err != nil {
-        c.JSON(400, gin.H{"message": "Problem creating an account"})
-        c.Abort()
-        return
-    }
+		c.JSON(400, gin.H{"message": "Problem creating an account"})
+		c.Abort()
+		return
+	}
 
 	res := utils.BuildResponse(true, "Please check email to verify account", input)
 
-    c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, res)
+}
+
+func (u *UserController) VerifyUser(c *gin.Context) {
+	var input VerifyInfo
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := userModel.ActiveUser(input.Email, input.VerifyToken)
+
+	if err != nil {
+		c.JSON(400, gin.H{"message": "Problem when verify account"})
+		c.Abort()
+		return
+	}
+
+	res := utils.BuildResponse(true, "Active User Success", input)
+
+	c.JSON(http.StatusOK, res)
 }
 
 // func FindAllUsers(c *gin.Context) {

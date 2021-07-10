@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
 func main() {
 	// Connect DB
 	r := gin.Default()
@@ -21,10 +20,9 @@ func main() {
 
 	userApi := r.Group("/user-api")
 	{
-		// userApi.GET("/", controllers.FindAllUsers)
+		userApi.POST("/active", user.VerifyUser)
 		userApi.POST("/signup", user.SignUp)
- 	}
-
+	}
 
 	// Run the server
 	r.Run(":8080")
