@@ -2,6 +2,13 @@
 
 - Project for Specialized Japanese subject was built on NextJS (front-end) and Golang (back-end)
 - Clone simulate Shopee
+- Config.json:
+
+```json
+    "postgreDB": "host=yourhost user=youruser password=yourpassword dbname=yourdbname port=yourpost sslmode=disable TimeZone=Asia/Shanghai",
+    "mailFrom": "your email of sendgrid",
+    "sendGridApiKey": "your api key of sendgrid"
+```
 
 ## Contributing
 

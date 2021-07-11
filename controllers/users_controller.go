@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/AnhHoangQuach/go-intern-spores/models"
+	"github.com/AnhHoangQuach/go-intern-spores/services"
 	"github.com/AnhHoangQuach/go-intern-spores/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,11 @@ type RegisterUserInput struct {
 type VerifyInfo struct {
 	Email       string `json:"email" binding:"required"`
 	VerifyToken string `json:"verify_token" binding:"required"`
+}
+
+type LoginUserInput struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
 }
 
 // Import the userModel from the models
@@ -54,7 +60,7 @@ func (u *UserController) VerifyUser(c *gin.Context) {
 	err := userModel.ActiveUser(input.Email, input.VerifyToken)
 
 	if err != nil {
-		c.JSON(400, gin.H{"message": "Problem when verify account"})
+		c.JSON(400, utils.BuildErrorResponse("Active user failed", err.Error(), nil))
 		c.Abort()
 		return
 	}
@@ -64,21 +70,47 @@ func (u *UserController) VerifyUser(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-// func FindAllUsers(c *gin.Context) {
-// 	var users []models.User
-// 	models.DB.Find(&users)
+func (u *UserController) Login(c *gin.Context) {
+	var input LoginUserInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{"data": users})
-// }
+	user, err := userModel.LoginHandler(input.Email, input.Password) 
 
-// func Delete(c *gin.Context) {
-// 	var user models.User
-// 	if err := models.DB.Where("email = ?", c.Param("email")).First(&user).Error; err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
-// 		return
-// 	}
+	if err != nil {
+		c.JSON(404, utils.BuildErrorResponse("Login failed", err.Error(), nil))
+		c.Abort()
+		return
+	}
 
-// 	models.DB.Delete(&user)
+	token, err := services.CreateJWT(user.Email)
+	if err != nil {
+		c.JSON(404, utils.BuildErrorResponse("Token is failed", err.Error(), nil))
+		c.Abort()
+		return
+	}
 
-// 	c.JSON(http.StatusOK, gin.H{"data": true})
-// }
+	res := utils.BuildResponse(true, "Login Success", token)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (u *UserController) Profile(c *gin.Context) {
+	user := c.MustGet("User").(*models.User)
+	if user.Email == "" || c.MustGet("User") == nil {
+		utils.BuildErrorResponse("Please login", "You not logged in", nil)
+		return
+	}
+
+	result, err := userModel.GetProfile(user.Email)
+	if err != nil {
+		c.JSON(404, utils.BuildErrorResponse("Authenticate is failed", err.Error(), nil))
+		c.Abort()
+		return
+	}
+	res := utils.BuildResponse(true, "Fetch Profile Success", result)
+
+	c.JSON(http.StatusOK, res)
+}

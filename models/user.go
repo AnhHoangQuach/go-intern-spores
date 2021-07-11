@@ -115,7 +115,7 @@ func (u *UserModel) ActiveUser(email, verify_token string) error {
 
 func (u *UserModel) LoginHandler(email string, password string) (*User, error) {
 	user, err := u.FindByEmail(email)
-	// user not sign up
+
 	if err != nil {
 		return nil, fmt.Errorf("This account does not exist")
 	}
@@ -144,5 +144,13 @@ func (u *UserModel) LoginHandler(email string, password string) (*User, error) {
 		return nil, fmt.Errorf("This account hasn't been activated, a verification code has been sent to your email, please check")
 	}
 
+	return user, nil
+}
+
+func (u *UserModel) GetProfile(email string) (*User, error) {
+	user, err := u.FindByEmail(email)
+	if err != nil {
+		return nil, err
+	}
 	return user, nil
 }
