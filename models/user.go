@@ -137,7 +137,7 @@ func (u *UserModel) LoginHandler(email string, password string) (*User, error) {
 		}
 
 		user.VerifyToken = verify_token
-		err = u.Save(user)
+		err = u.Update(user)
 		if err != nil {
 			fmt.Errorf("Save failed %v", err)
 		}
