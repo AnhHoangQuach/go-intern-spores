@@ -25,6 +25,7 @@ func ConnectDB() {
 	}
 
 	database.AutoMigrate(User{}) //database migration
+	database.AutoMigrate(Item{})
 
 	DB = database
 }

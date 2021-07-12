@@ -77,7 +77,7 @@ func (u *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := userModel.LoginHandler(input.Email, input.Password) 
+	user, err := userModel.LoginHandler(input.Email, input.Password)
 
 	if err != nil {
 		c.JSON(404, utils.BuildErrorResponse("Login failed", err.Error(), nil))
@@ -98,8 +98,14 @@ func (u *UserController) Login(c *gin.Context) {
 }
 
 func (u *UserController) Profile(c *gin.Context) {
-	user := c.MustGet("User").(*models.User)
-	if user.Email == "" || c.MustGet("User") == nil {
+	getUser, _ := c.Get("User")
+	if getUser == nil {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
+		return
+	}
+	user := getUser.(*models.User)
+	if user.Email == "" {
 		utils.BuildErrorResponse("Please login", "You not logged in", nil)
 		return
 	}

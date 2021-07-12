@@ -27,6 +27,15 @@ func main() {
 		userApi.GET("/profile", middlewares.Authenticate(), user.Profile)
 	}
 
+	item := new(controllers.ItemController)
+
+	itemApi := r.Group("/")
+
+	{
+		itemApi.POST("/items", middlewares.Authenticate(), item.CreateItem)
+		itemApi.DELETE("/items/:id", middlewares.Authenticate(), item.DeleteItem)
+	}
+
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"message": "Not found"})
 	})

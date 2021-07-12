@@ -18,6 +18,7 @@ type User struct {
 	Address     string    `gorm:"size:255;not null" json:"address"`
 	VerifyToken string    `gorm:"size:255;not null" json:"verify_token"`
 	ResetToken  string    `gorm:"size:255;not null" json:"reset_token"`
+	Items       []Item    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignkey:id"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
