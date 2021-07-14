@@ -36,6 +36,8 @@ func main() {
 		itemApi.DELETE("/items/:id", middlewares.Authenticate(), item.DeleteItem)
 		itemApi.GET("/items/:id", middlewares.Authenticate(), item.GetItem)
 		itemApi.GET("/items", middlewares.Authenticate(), item.GetAllItems)
+		itemApi.PATCH("/items/:id", middlewares.Authenticate(), item.UpdateItem)
+		itemApi.PUT("/items/:id", middlewares.Authenticate(), item.UpdateItem)
 	}
 
 	r.NoRoute(func(c *gin.Context) {

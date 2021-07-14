@@ -21,6 +21,13 @@ type CreateItemInput struct {
 	Metadata    string `json:"metadata" binding:"required`
 }
 
+type UpdateItemInput struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Price       int64  `json:"price"`
+	Currency    string `json:"currency"`
+}
+
 type Pagination struct {
 	Limit      int         `json:"limit"`
 	Page       int         `json:"page"`
@@ -184,5 +191,68 @@ func (i *ItemController) GetAllItems(c *gin.Context) {
 
 	res := utils.BuildResponse(true, "Success", result)
 
+	c.JSON(http.StatusOK, res)
+}
+
+func (i *ItemController) UpdateItem(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
+		return
+	}
+
+	token := c.Request.Header["Authorization"]
+	if len(token) == 0 || token[0] == "" {
+		// Abort with error
+		utils.BuildErrorResponse("Error", "You are not logged in", nil)
+		return
+	}
+
+	user, err := services.ParseJWTToken(token[0])
+
+	item, err := itemModel.FindByID(uint32(id))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		return
+	}
+
+	if item.Owner != user.Email {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Update Item Failed", "You isn't owner of item", nil))
+		return
+	}
+
+	var input UpdateItemInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if input.Name != "" && input.Name != item.Name {
+		item.Name = input.Name
+	}
+	if input.Description != "" && input.Description != item.Description {
+		item.Description = input.Description
+	}
+	if input.Price != 0 && input.Price != item.Price {
+		item.Price = input.Price
+	}
+	if input.Currency != "" && input.Currency != item.Currency {
+		item.Currency = input.Currency
+	}
+
+	if input.Name == "" && input.Description == "" && input.Price == 0 && input.Currency == "" {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "Please provide info to update item", nil))
+		return
+	}
+
+	err = itemModel.Update(item)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Item Failed", err.Error(), nil))
+		return
+	}
+
+	res := utils.BuildResponse(true, "Update Item Success", nil)
 	c.JSON(http.StatusOK, res)
 }
