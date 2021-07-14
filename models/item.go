@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"math"
+	"strings"
 	"time"
 )
 
@@ -22,11 +23,18 @@ type Item struct {
 }
 
 type Pagination struct {
-	Limit      int    `json:"limit"`
-	Page       int    `json:"page"`
-	Sort       string `json:"sort"`
-	TotalRows  int64  `json:"total_rows"`
-	TotalPages int64  `json:"total_pages"`
+	Limit      int      `json:"limit"`
+	Page       int      `json:"page"`
+	Sort       string   `json:"sort"`
+	TotalRows  int64    `json:"total_rows"`
+	TotalPages int64    `json:"total_pages"`
+	Searchs    []Search `json:"searchs"`
+}
+
+type Search struct {
+	Column string `json:"column"`
+	Action string `json:"action"`
+	Query  string `json:"query"`
 }
 
 type ItemModel struct{}
@@ -92,12 +100,42 @@ func (i *ItemModel) AddMetadataLink(id uint32, metadata string) error {
 	return nil
 }
 
-func (i *ItemModel) GetItemsPagination(item *Item, pagination *Pagination, owner string) (*[]Item, int64, int64, error) {
+func (i *ItemModel) Pagination(item *Item, pagination *Pagination, owner string) (*[]Item, int64, int64, error) {
 	var items []Item
 	var totalRows int64
 	offset := (pagination.Page - 1) * pagination.Limit
 	queryBuilder := DB.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+
+	// generate where query
+	searchs := pagination.Searchs
+
+	if searchs != nil {
+		for _, value := range searchs {
+			column := value.Column
+			action := value.Action
+			query := value.Query
+
+			switch action {
+			case "equals":
+				whereQuery := fmt.Sprintf("%s = ?", column)
+				queryBuilder = queryBuilder.Where(whereQuery, query)
+				break
+			case "contains":
+				whereQuery := fmt.Sprintf("%s LIKE ?", column)
+				queryBuilder = queryBuilder.Where(whereQuery, "%"+query+"%")
+				break
+			case "in":
+				whereQuery := fmt.Sprintf("%s IN (?)", column)
+				queryArray := strings.Split(query, ",")
+				queryBuilder = queryBuilder.Where(whereQuery, queryArray)
+				break
+
+			}
+		}
+	}
+
 	result := queryBuilder.Model(&Item{}).Where("owner = ?", owner).Find(&items)
+
 	result.Model(&Item{}).Count(&totalRows)
 	totalPages := int64(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
 	if result.Error != nil {

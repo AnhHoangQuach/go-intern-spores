@@ -165,7 +165,7 @@ func (i *ItemController) GetAllItems(c *gin.Context) {
 	var item models.Item
 	pagination := services.GeneratePaginationFromRequest(c)
 
-	itemLists, totalRows, totalPages, err := itemModel.GetItemsPagination(&item, &pagination, user.Email)
+	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, user.Email)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil))
