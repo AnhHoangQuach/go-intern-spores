@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -11,13 +12,21 @@ type Item struct {
 	Description string    `gorm:"size:255;not null" json:"description"`
 	Price       int64     `json:"price"`
 	Currency    string    `gorm:"size:255;not null" json:"currency"`
-	OwnerID     uint32    `gorm:"not null" json:"owner_id"`
 	Owner       string    `gorm:"size:255;not null" json:"owner"`
 	Creator     string    `gorm:"size:255;not null" json:"creator"`
 	Metadata    string    `gorm:"size:255;not null" json:"metadata"`
 	Status      string    `gorm:"size:255;not null;default:Pending" json:"status"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	// OwnerID     uint32    `gorm:"not null" json:"owner_id"`
+}
+
+type Pagination struct {
+	Limit      int    `json:"limit"`
+	Page       int    `json:"page"`
+	Sort       string `json:"sort"`
+	TotalRows  int64  `json:"total_rows"`
+	TotalPages int64  `json:"total_pages"`
 }
 
 type ItemModel struct{}
@@ -36,14 +45,13 @@ func (i *ItemModel) Update(item *Item) error {
 	return nil
 }
 
-func (i *ItemModel) Create(name, description, currency, owner, creator string, price int64, owner_id uint32) (*Item, error) {
+func (i *ItemModel) Create(name, description, currency, owner, creator string, price int64) (*Item, error) {
 	var item = &Item{
 		Name:        name,
 		Description: description,
 		Price:       price,
 		Currency:    currency,
 		Owner:       owner,
-		OwnerID:     uint32(owner_id),
 		Creator:     creator,
 	}
 
@@ -82,4 +90,19 @@ func (i *ItemModel) AddMetadataLink(id uint32, metadata string) error {
 		return err
 	}
 	return nil
+}
+
+func (i *ItemModel) GetItemsPagination(item *Item, pagination *Pagination, owner string) (*[]Item, int64, int64, error) {
+	var items []Item
+	var totalRows int64
+	offset := (pagination.Page - 1) * pagination.Limit
+	queryBuilder := DB.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	result := queryBuilder.Model(&Item{}).Where("owner = ?", owner).Find(&items)
+	result.Model(&Item{}).Count(&totalRows)
+	totalPages := int64(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
+	if result.Error != nil {
+		msg := result.Error
+		return nil, 0, 0, msg
+	}
+	return &items, totalRows, totalPages, nil
 }

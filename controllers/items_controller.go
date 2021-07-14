@@ -21,6 +21,15 @@ type CreateItemInput struct {
 	Metadata    string `json:"metadata" binding:"required`
 }
 
+type Pagination struct {
+	Limit      int         `json:"limit"`
+	Page       int         `json:"page"`
+	Sort       string      `json:"sort"`
+	TotalRows  int64       `json:"total_rows"`
+	TotalPages int         `json:"total_pages"`
+	Rows       interface{} `json:"rows"`
+}
+
 var itemModel = new(models.ItemModel)
 
 type ItemController struct{}
@@ -44,7 +53,7 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 		return
 	}
 
-	item, err := itemModel.Create(input.Name, input.Description, input.Currency, user.Email, user.Email, input.Price, user.ID)
+	item, err := itemModel.Create(input.Name, input.Description, input.Currency, user.Email, user.Email, input.Price)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem creating item", err.Error(), nil))
@@ -102,5 +111,78 @@ func (i *ItemController) DeleteItem(c *gin.Context) {
 	}
 
 	res := utils.BuildResponse(true, "Delete Item Success", nil)
+	c.JSON(http.StatusOK, res)
+}
+
+func (i *ItemController) GetItem(c *gin.Context) {
+	getUser, _ := c.Get("User")
+	if getUser == nil {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
+		return
+	}
+
+	user := getUser.(*models.User)
+
+	if user.Email == "" {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
+		return
+	}
+
+	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
+		return
+	}
+
+	item, err := itemModel.FindByID(uint32(id))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not found", err.Error(), nil))
+		return
+	}
+
+	res := utils.BuildResponse(true, "Fetch Item Success", item)
+	c.JSON(http.StatusOK, res)
+}
+
+func (i *ItemController) GetAllItems(c *gin.Context) {
+	getUser, _ := c.Get("User")
+	if getUser == nil {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
+		return
+	}
+
+	user := getUser.(*models.User)
+
+	if user.Email == "" {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
+		return
+	}
+
+	var item models.Item
+	pagination := services.GeneratePaginationFromRequest(c)
+
+	itemLists, totalRows, totalPages, err := itemModel.GetItemsPagination(&item, &pagination, user.Email)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil))
+		return
+	}
+
+	result := struct {
+		Items      *[]models.Item `json:"items"`
+		TotalPages int64          `json:"totalPages"`
+		TotalRows  int64          `json:"totalRows"`
+	}{
+		Items:      itemLists,
+		TotalPages: totalPages,
+		TotalRows:  totalRows,
+	}
+
+	res := utils.BuildResponse(true, "Success", result)
+
 	c.JSON(http.StatusOK, res)
 }

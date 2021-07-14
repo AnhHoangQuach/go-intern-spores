@@ -34,6 +34,8 @@ func main() {
 	{
 		itemApi.POST("/items", middlewares.Authenticate(), item.CreateItem)
 		itemApi.DELETE("/items/:id", middlewares.Authenticate(), item.DeleteItem)
+		itemApi.GET("/items/:id", middlewares.Authenticate(), item.GetItem)
+		itemApi.GET("/items", middlewares.Authenticate(), item.GetAllItems)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
