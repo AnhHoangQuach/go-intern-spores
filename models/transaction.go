@@ -17,6 +17,7 @@ type Transaction struct {
 	Status    string    `gorm:"size:255;not null;default:Pending" json:"status" binding:"required"`
 	Fee       float64   `gorm:"size:255;not null" json:"fee" binding:"required"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 type TxModel struct{}

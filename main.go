@@ -45,6 +45,14 @@ func main() {
 
 	}
 
+	auction := new(controllers.AuctionController)
+
+	auctionApi := r.Group("/auction")
+
+	{
+		auctionApi.POST("/", middlewares.Authenticate(), auction.CreateAuction)
+	}
+
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"message": "Not found"})
 	})
