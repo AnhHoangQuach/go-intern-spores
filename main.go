@@ -29,6 +29,8 @@ func main() {
 
 	item := new(controllers.ItemController)
 
+	tx := new(controllers.TransactionController)
+
 	itemApi := r.Group("/items")
 
 	{
@@ -38,7 +40,8 @@ func main() {
 		itemApi.GET("/", middlewares.Authenticate(), item.GetAllItems)
 		itemApi.PATCH("/:id", middlewares.Authenticate(), item.UpdateItem)
 		itemApi.PUT("/:id", middlewares.Authenticate(), item.UpdateItem)
-		itemApi.POST("/buy/:id", middlewares.Authenticate(), item.BuyItem)
+		itemApi.POST("/:id/buy", middlewares.Authenticate(), item.BuyItem)
+		itemApi.GET("/:id/transactions", tx.GetTransOfItem)
 
 	}
 
