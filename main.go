@@ -29,15 +29,17 @@ func main() {
 
 	item := new(controllers.ItemController)
 
-	itemApi := r.Group("/")
+	itemApi := r.Group("/items")
 
 	{
-		itemApi.POST("/items", middlewares.Authenticate(), item.CreateItem)
-		itemApi.DELETE("/items/:id", middlewares.Authenticate(), item.DeleteItem)
-		itemApi.GET("/items/:id", middlewares.Authenticate(), item.GetItem)
-		itemApi.GET("/items", middlewares.Authenticate(), item.GetAllItems)
-		itemApi.PATCH("/items/:id", middlewares.Authenticate(), item.UpdateItem)
-		itemApi.PUT("/items/:id", middlewares.Authenticate(), item.UpdateItem)
+		itemApi.POST("/", middlewares.Authenticate(), item.CreateItem)
+		itemApi.DELETE("/:id", middlewares.Authenticate(), item.DeleteItem)
+		itemApi.GET("/:id", middlewares.Authenticate(), item.GetItem)
+		itemApi.GET("/", middlewares.Authenticate(), item.GetAllItems)
+		itemApi.PATCH("/:id", middlewares.Authenticate(), item.UpdateItem)
+		itemApi.PUT("/:id", middlewares.Authenticate(), item.UpdateItem)
+		itemApi.POST("/buy/:id", middlewares.Authenticate(), item.BuyItem)
+
 	}
 
 	r.NoRoute(func(c *gin.Context) {

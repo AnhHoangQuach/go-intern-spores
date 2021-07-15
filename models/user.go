@@ -10,6 +10,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// OK returns if a operation was successful
+func OK(done chan bool) bool {
+	select {
+	case ok := <-done:
+		if ok {
+			return ok
+		}
+
+	}
+	return false
+}
+
 type User struct {
 	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
 	Email       string    `gorm:"size:100;not null;unique" json:"email"`
@@ -26,10 +38,21 @@ type User struct {
 type UserModel struct{}
 
 func (u *UserModel) Save(user *User) error {
-	if err := DB.Create(&user).Error; err != nil {
-		return fmt.Errorf("Save user failed")
+	var err error
+	done := make(chan bool)
+	go func(ch chan<- bool) {
+		defer close(ch)
+		err = DB.Model(&User{}).Create(&user).Error
+		if err != nil {
+			ch <- false
+			return
+		}
+		ch <- true
+	}(done)
+	if OK(done) {
+		return nil
 	}
-	return nil
+	return err
 }
 
 func (u *UserModel) Update(user *User) error {

@@ -11,12 +11,13 @@ type Item struct {
 	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
 	Name        string    `gorm:"size:255;not null" json:"name"`
 	Description string    `gorm:"size:255;not null" json:"description"`
-	Price       int64     `json:"price"`
+	Price       uint64    `json:"price"`
 	Currency    string    `gorm:"size:255;not null" json:"currency"`
 	Owner       string    `gorm:"size:255;not null" json:"owner"`
 	Creator     string    `gorm:"size:255;not null" json:"creator"`
 	Metadata    string    `gorm:"size:255;not null" json:"metadata"`
 	Status      string    `gorm:"size:255;not null;default:Pending" json:"status"`
+	Type        string    `gorm:"size:255;not null" json:"type"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// OwnerID     uint32    `gorm:"not null" json:"owner_id"`
@@ -53,7 +54,7 @@ func (i *ItemModel) Update(item *Item) error {
 	return nil
 }
 
-func (i *ItemModel) Create(name, description, currency, owner, creator string, price int64) (*Item, error) {
+func (i *ItemModel) Create(name, description, currency, owner, creator, type_item string, price uint64) (*Item, error) {
 	var item = &Item{
 		Name:        name,
 		Description: description,
@@ -61,6 +62,7 @@ func (i *ItemModel) Create(name, description, currency, owner, creator string, p
 		Currency:    currency,
 		Owner:       owner,
 		Creator:     creator,
+		Type:        type_item,
 	}
 
 	err := i.Save(item)
