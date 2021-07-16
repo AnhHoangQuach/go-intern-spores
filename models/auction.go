@@ -59,3 +59,19 @@ func (a *AuctionModel) Create(item_id uint32, initial_price float64, end_at int)
 
 	return auction, nil
 }
+
+func (a *AuctionModel) FindByID(id uint32) (*Auction, error) {
+	var result Auction
+	if err := DB.Where("id = ?", id).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (a *AuctionModel) Delete(id uint32) error {
+	var result Auction
+	if err := DB.Where("id = ?", id).Delete(&result).Error; err != nil {
+		return err
+	}
+	return nil
+}
