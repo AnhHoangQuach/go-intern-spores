@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -17,6 +18,8 @@ var transactionModel = new(models.TxModel)
 func (t *TransactionController) GetTransOfItem(c *gin.Context) {
 	var tx models.Transaction
 	pagination := services.GeneratePaginationFromRequest(c)
+
+	fmt.Println(pagination)
 
 	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
 	if err != nil {

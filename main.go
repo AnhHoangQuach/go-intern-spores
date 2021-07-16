@@ -55,6 +55,14 @@ func main() {
 		auctionApi.DELETE("/:id", middlewares.Authenticate(), auction.DeleteAuction)
 	}
 
+	market := new(controllers.MarketController)
+
+	marketApi := r.Group("/market")
+
+	{
+		marketApi.GET("/revenue", middlewares.Authenticate(), market.TotalRevenue)
+	}
+
 	r.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"message": "Not found"})
 	})

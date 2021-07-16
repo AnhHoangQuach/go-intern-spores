@@ -1,7 +1,7 @@
 ## Project
 
-- Project for Specialized Japanese subject was built on NextJS (front-end) and Golang (back-end)
-- Clone simulate Shopee
+- Project for intern in Spores was built on NextJS (front-end) and Golang (back-end)
+- Clone simulate NFT Market Place
 - Config.json:
 
 ```json
