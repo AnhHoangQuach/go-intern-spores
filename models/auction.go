@@ -10,10 +10,10 @@ type Auction struct {
 	ItemID       uint32    `json:"item_id" binding:"required"`
 	InitialPrice float64   `json:"initial_price" binding:"required"`
 	FinalPrice   float64   `json:"final_price" binding:"required"`
+	Status       string    `gorm:"default:Pending" json:"status" binding:"required"`
 	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	EndAt        time.Time `json:"end_at" binding:"required"`
-	Status       string    `gorm:"default:Pending" json:"status" binding:"required"`
 }
 
 type AuctionModel struct{}
@@ -23,7 +23,7 @@ func (a *AuctionModel) Save(auction *Auction) error {
 	done := make(chan bool)
 	go func(ch chan<- bool) {
 		defer close(ch)
-		err = DB.Model(&Transaction{}).Create(&auction).Error
+		err = DB.Model(&Auction{}).Create(&auction).Error
 		if err != nil {
 			ch <- false
 			return
@@ -43,12 +43,13 @@ func (a *AuctionModel) Update(auction *Auction) error {
 	return nil
 }
 
-func (a *AuctionModel) Create(item_id uint32, initial_price, final_price float64, end_at time.Time) (*Auction, error) {
+func (a *AuctionModel) Create(item_id uint32, initial_price float64, end_at int) (*Auction, error) {
+	end_at_time := time.Now().AddDate(0, 0, end_at)
+
 	var auction = &Auction{
 		ItemID:       item_id,
 		InitialPrice: initial_price,
-		FinalPrice:   final_price,
-		EndAt:        end_at,
+		EndAt:        end_at_time,
 	}
 
 	err := a.Save(auction)

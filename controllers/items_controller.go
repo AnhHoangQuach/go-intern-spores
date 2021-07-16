@@ -11,15 +11,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type CreateAuctionInput struct {
+	InitialPrice float64 `json:"initial_price"`
+	EndAt        int     `json:"end_at"`
+}
+
 type CreateItemInput struct {
-	Name        string `json:"name" binding:"required`
-	Description string `json:"description"`
-	Price       uint64 `json:"price" binding:"required`
-	Currency    string `json:"currency" binding:"required`
-	Owner       string `json:"owner" binding:"required`
-	Creator     string `json:"creator" binding:"required`
-	Metadata    string `json:"metadata" binding:"required`
-	Type        string `json:"type" binding:"required`
+	Name         string             `json:"name" binding:"required`
+	Description  string             `json:"description"`
+	Price        uint64             `json:"price" binding:"required`
+	Currency     string             `json:"currency" binding:"required`
+	Type         string             `json:"type" binding:"required`
+	AuctionInput CreateAuctionInput `json:"create_auction_input"`
 }
 
 type UpdateItemInput struct {
@@ -40,6 +43,7 @@ type Pagination struct {
 
 var itemModel = new(models.ItemModel)
 var txModel = new(models.TxModel)
+var auctionModel = new(models.AuctionModel)
 
 type ItemController struct{}
 
@@ -76,6 +80,27 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem when add metadata link", err.Error(), nil))
 		c.Abort()
+		return
+	}
+
+	if input.Type == "Auction" {
+		auction, err := auctionModel.Create(item.ID, input.AuctionInput.InitialPrice, input.AuctionInput.EndAt)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem when create auction", err.Error(), nil))
+			c.Abort()
+			return
+		}
+
+		result := struct {
+			Item    *models.Item    `json:"item"`
+			Auction *models.Auction `json:"auction"`
+		}{
+			Item:    item,
+			Auction: auction,
+		}
+
+		res := utils.BuildResponse(true, "Create Item Success", result)
+		c.JSON(http.StatusOK, res)
 		return
 	}
 

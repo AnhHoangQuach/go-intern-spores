@@ -24,7 +24,7 @@ func ConnectDB() {
 		fmt.Printf("We are connected to the database")
 	}
 
-	database.AutoMigrate(User{}, Item{}, Transaction{}) //database migration
+	database.AutoMigrate(User{}, Item{}, Transaction{}, Auction{}) //database migration
 
 	DB = database
 }

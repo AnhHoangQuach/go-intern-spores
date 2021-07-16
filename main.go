@@ -50,7 +50,7 @@ func main() {
 	auctionApi := r.Group("/auction")
 
 	{
-		auctionApi.POST("/", middlewares.Authenticate(), auction.CreateAuction)
+		auctionApi.POST("/:id", middlewares.Authenticate(), auction.UpdateAuction)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
