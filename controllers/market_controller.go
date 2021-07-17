@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,29 +15,56 @@ type MarketController struct{}
 
 var MarketModel = new(models.MarketModel)
 
+func HandleDate(input int) string {
+	out := strconv.Itoa(input)
+	zero := fmt.Sprintf("%c", '0')
+	if input < 10 {
+		return zero + out
+	}
+	return out
+}
+
 func (m *MarketController) TotalRevenue(c *gin.Context) {
-	cal_type := "date"
-	time_query := time.Now().Day()
-	var sum float64 = 0
+	day := time.Now().Day()
+	month := int(time.Now().Month())
+	year := time.Now().Year()
+
+	queryType := 1
+
+	yearStart := HandleDate(time.Now().Year())
+	monthStart := HandleDate(int(time.Now().Month()))
+	dateStart := HandleDate(time.Now().Day())
+	tempChar := fmt.Sprintf("%c", '-')
+
+	started := yearStart + tempChar + monthStart + tempChar + dateStart
+	to := yearStart + tempChar + monthStart + tempChar + dateStart
 
 	query := c.Request.URL.Query()
 	for key, value := range query {
 		queryValue := value[len(value)-1]
-		if key == "cal_type" {
-			cal_type = queryValue
-		}
-
-		if key == "date" || key == "month" || key == "year" {
-			time_query, _ = strconv.Atoi(queryValue)
+		switch key {
+		case "day":
+			day, _ = strconv.Atoi(queryValue)
+			break
+		case "month":
+			month, _ = strconv.Atoi(queryValue)
+			break
+		case "year":
+			year, _ = strconv.Atoi(queryValue)
+			break
+		case "started":
+			started = queryValue
+			queryType = 2
+			break
+		case "to":
+			to = queryValue
+			queryType = 2
+			break
 		}
 	}
 
-	txLists := MarketModel.CalculateRevenue(cal_type, time_query)
-
-	for _, tx := range txLists {
-		sum += (float64(tx.Price) + float64(tx.Fee))
-	}
-	res := utils.BuildResponse(true, "Success", txLists)
+	sum := MarketModel.CalculateRevenue(day, month, year, queryType, started, to)
+	res := utils.BuildResponse(true, "Success", sum)
 
 	c.JSON(http.StatusOK, res)
 }
