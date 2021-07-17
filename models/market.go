@@ -30,7 +30,7 @@ func (m *MarketModel) CalculateRevenue(cal_type string, time_query int) []*Trans
 	if cal_type == "date" {
 		queryDay := yearNow + tempChar + monthNow + tempChar + HandleDate(time_query)
 		fmt.Println(queryDay)
-		DB.Model(&Transaction{}).Raw("SELECT * FROM transactions WHERE date_part('day', created_at) = date_part('day', ?::TIMESTAMP)", queryDay).Find(&txs)
+		DB.Model(&Transaction{}).Raw("SELECT * FROM transactions WHERE date_part('day', created_at) = date_part('day', ?::TIMESTAMP')").Find(&txs)
 	} else if cal_type == "month" {
 		queryMonth := yearNow + tempChar + HandleDate(time_query) + tempChar + dateNow
 		DB.Model(&Transaction{}).Raw("SELECT * FROM transactions WHERE date_part('month', created_at) = date_part('month', ?::TIMESTAMP)", queryMonth).Find(&txs)

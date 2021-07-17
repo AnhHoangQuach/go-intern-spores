@@ -36,7 +36,7 @@ func (m *MarketController) TotalRevenue(c *gin.Context) {
 	for _, tx := range txLists {
 		sum += (float64(tx.Price) + float64(tx.Fee))
 	}
-	res := utils.BuildResponse(true, "Success", sum)
+	res := utils.BuildResponse(true, "Success", txLists)
 
 	c.JSON(http.StatusOK, res)
 }
