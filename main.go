@@ -61,6 +61,11 @@ func main() {
 
 	{
 		marketApi.GET("/revenue", middlewares.Authenticate(), market.TotalRevenue)
+		marketApi.GET("/users", middlewares.Authenticate(), market.TotalUserRegister)
+		marketApi.GET("/items/newest", middlewares.Authenticate(), market.GetItemsNewest)
+		marketApi.GET("/auctions/newest", middlewares.Authenticate(), market.GetAuctionsNewest)
+		marketApi.GET("/auctions/hot", middlewares.Authenticate(), market.HotAuctions)
+		marketApi.GET("/items/hot", middlewares.Authenticate(), market.HotItems)
 	}
 
 	r.NoRoute(func(c *gin.Context) {

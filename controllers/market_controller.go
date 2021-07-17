@@ -68,3 +68,38 @@ func (m *MarketController) TotalRevenue(c *gin.Context) {
 
 	c.JSON(http.StatusOK, res)
 }
+
+func (m *MarketController) TotalUserRegister(c *gin.Context) {
+	sum := MarketModel.CountUserInDay()
+	res := utils.BuildResponse(true, "Success", sum)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (m *MarketController) GetItemsNewest(c *gin.Context) {
+	result := MarketModel.ListItemsNew()
+	res := utils.BuildResponse(true, "Success", result)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (m *MarketController) GetAuctionsNewest(c *gin.Context) {
+	result := MarketModel.ListAuctionsNew()
+	res := utils.BuildResponse(true, "Success", result)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (m *MarketController) HotItems(c *gin.Context) {
+	result := MarketModel.SellestItems()
+	res := utils.BuildResponse(true, "Success", result)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (m *MarketController) HotAuctions(c *gin.Context) {
+	result := MarketModel.Bighestitems()
+	res := utils.BuildResponse(true, "Success", result)
+
+	c.JSON(http.StatusOK, res)
+}
