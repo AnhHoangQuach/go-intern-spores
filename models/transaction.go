@@ -13,7 +13,7 @@ type Transaction struct {
 	TxHash    string    `gorm:"size:255;not null" json:"tx_hash" binding:"required"`
 	Buyer     string    `gorm:"size:255;not null" json:"buyer" binding:"required"`
 	Seller    string    `gorm:"size:255;not null" json:"seller" binding:"required"`
-	Price     uint64    `json:"price" binding:"required"`
+	Price     float64   `json:"price" binding:"required"`
 	Status    string    `gorm:"size:255;not null;default:Pending" json:"status" binding:"required"`
 	Fee       float64   `gorm:"size:255;not null" json:"fee" binding:"required"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -47,7 +47,7 @@ func (t *TxModel) Update(tx *Transaction) error {
 	return nil
 }
 
-func (t *TxModel) Create(hash string, item_id uint32, buyer, seller string, price uint64, fee float64) (*Transaction, error) {
+func (t *TxModel) Create(hash string, item_id uint32, buyer, seller string, price float64, fee float64) (*Transaction, error) {
 	var tx = &Transaction{
 		ItemID: item_id,
 		TxHash: hash,

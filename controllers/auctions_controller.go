@@ -20,6 +20,10 @@ type UpdateAuctionInput struct {
 	EndAt        int     `json:"end_at"`
 }
 
+type BidAuctionInput struct {
+	Amount float64 `json:"amount"`
+}
+
 func (a *AuctionController) UpdateAuction(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
 	if err != nil {
@@ -131,5 +135,71 @@ func (a *AuctionController) DeleteAuction(c *gin.Context) {
 	}
 
 	res := utils.BuildResponse(true, "Delete Auction Success", nil)
+	c.JSON(http.StatusOK, res)
+}
+
+func (a *AuctionController) BidAuction(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	getUser, _ := c.Get("User")
+	if getUser == nil {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
+		return
+	}
+	user := getUser.(*models.User)
+	if user.Email == "" {
+		utils.BuildErrorResponse("Please login", "You not logged in", nil)
+		return
+	}
+
+	auction, err := aModel.FindByID(uint32(id))
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Auction is not existed", err.Error(), nil))
+		return
+	}
+
+	item, err := iModel.FindByID(auction.ItemID)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		return
+	}
+
+	if item.Owner == user.Email {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Bid Auction Failed", "This is your item", nil))
+		return
+	}
+
+	var input BidAuctionInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	auctionAfterBid, err := auctionModel.Bid(uint32(id), input.Amount)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Bid Auction Failed", err.Error(), nil))
+		return
+	}
+
+	hash := utils.NewSHA1Hash()
+
+	tx, err := txModel.Create(hash, item.ID, user.Email, item.Owner, input.Amount, float64(input.Amount)*0.1)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Transaction Failed", err.Error(), nil))
+		return
+	}
+
+	result := struct {
+		Tx      *models.Transaction `json:"tx"`
+		Auction *models.Auction     `json:"auction"`
+	}{
+		Tx:      tx,
+		Auction: auctionAfterBid,
+	}
+
+	res := utils.BuildResponse(true, "Bid Auction Success", result)
 	c.JSON(http.StatusOK, res)
 }

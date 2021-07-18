@@ -49,6 +49,7 @@ func (a *AuctionModel) Create(item_id uint32, initial_price float64, end_at int)
 	var auction = &Auction{
 		ItemID:       item_id,
 		InitialPrice: initial_price,
+		FinalPrice:   initial_price,
 		EndAt:        end_at_time,
 	}
 
@@ -74,4 +75,20 @@ func (a *AuctionModel) Delete(id uint32) error {
 		return err
 	}
 	return nil
+}
+
+func (a *AuctionModel) Bid(id uint32, amount float64) (*Auction, error) {
+	auction, err := a.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	if amount <= auction.FinalPrice {
+		return nil, fmt.Errorf("Please bid bigger than now price")
+	}
+	auction.FinalPrice = amount
+	err = a.Update(auction)
+	if err != nil {
+		return nil, fmt.Errorf("Bid is error")
+	}
+	return auction, nil
 }

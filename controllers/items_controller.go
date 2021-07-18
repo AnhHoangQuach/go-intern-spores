@@ -19,17 +19,17 @@ type CreateAuctionInput struct {
 type CreateItemInput struct {
 	Name         string             `json:"name" binding:"required`
 	Description  string             `json:"description"`
-	Price        uint64             `json:"price" binding:"required`
+	Price        float64            `json:"price" binding:"required`
 	Currency     string             `json:"currency" binding:"required`
 	Type         string             `json:"type" binding:"required`
 	AuctionInput CreateAuctionInput `json:"create_auction_input"`
 }
 
 type UpdateItemInput struct {
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Price       uint64 `json:"price"`
-	Currency    string `json:"currency"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	Currency    string  `json:"currency"`
 }
 
 type Pagination struct {

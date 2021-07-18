@@ -98,7 +98,7 @@ func (m *MarketController) HotItems(c *gin.Context) {
 }
 
 func (m *MarketController) HotAuctions(c *gin.Context) {
-	result := MarketModel.Bighestitems()
+	result := MarketModel.BighestAuctions()
 	res := utils.BuildResponse(true, "Success", result)
 
 	c.JSON(http.StatusOK, res)

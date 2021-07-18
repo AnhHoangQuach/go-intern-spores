@@ -11,7 +11,7 @@ type Item struct {
 	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
 	Name        string    `gorm:"size:255;not null" json:"name"`
 	Description string    `gorm:"size:255;not null" json:"description"`
-	Price       uint64    `json:"price"`
+	Price       float64   `json:"price"`
 	Currency    string    `gorm:"size:255;not null" json:"currency"`
 	Owner       string    `gorm:"size:255;not null" json:"owner"`
 	Creator     string    `gorm:"size:255;not null" json:"creator"`
@@ -54,7 +54,7 @@ func (i *ItemModel) Update(item *Item) error {
 	return nil
 }
 
-func (i *ItemModel) Create(name, description, currency, owner, creator, type_item string, price uint64) (*Item, error) {
+func (i *ItemModel) Create(name, description, currency, owner, creator, type_item string, price float64) (*Item, error) {
 	var item = &Item{
 		Name:        name,
 		Description: description,

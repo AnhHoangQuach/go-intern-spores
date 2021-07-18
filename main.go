@@ -53,6 +53,7 @@ func main() {
 		auctionApi.PATCH("/:id", middlewares.Authenticate(), auction.UpdateAuction)
 		auctionApi.PUT("/:id", middlewares.Authenticate(), auction.UpdateAuction)
 		auctionApi.DELETE("/:id", middlewares.Authenticate(), auction.DeleteAuction)
+		auctionApi.POST("/:id/bid", middlewares.Authenticate(), auction.BidAuction)
 	}
 
 	market := new(controllers.MarketController)
@@ -62,10 +63,10 @@ func main() {
 	{
 		marketApi.GET("/revenue", middlewares.Authenticate(), market.TotalRevenue)
 		marketApi.GET("/users", middlewares.Authenticate(), market.TotalUserRegister)
-		marketApi.GET("/items/newest", middlewares.Authenticate(), market.GetItemsNewest)
-		marketApi.GET("/auctions/newest", middlewares.Authenticate(), market.GetAuctionsNewest)
-		marketApi.GET("/auctions/hot", middlewares.Authenticate(), market.HotAuctions)
-		marketApi.GET("/items/hot", middlewares.Authenticate(), market.HotItems)
+		marketApi.GET("/items/newest", market.GetItemsNewest)
+		marketApi.GET("/auctions/newest", market.GetAuctionsNewest)
+		marketApi.GET("/auctions/hot", market.HotAuctions)
+		marketApi.GET("/items/hot", market.HotItems)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
