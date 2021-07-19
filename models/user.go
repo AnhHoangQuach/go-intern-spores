@@ -171,6 +171,63 @@ func (u *UserModel) LoginHandler(email string, password string) (*User, error) {
 	return user, nil
 }
 
+func (u *UserModel) ResetLink(email string) error {
+	reset_token := RandomSixDigits(100000, 999999)
+
+	user, err := u.FindByEmail(email)
+	if err != nil {
+		return fmt.Errorf("Failed Email")
+	}
+	user.ResetToken = reset_token
+	err = u.Update(user)
+	if err != nil {
+		return fmt.Errorf("Save failed %v", err)
+	}
+
+	subject := "Email Reset Token"
+
+	m := utils.NewMailSender([]string{email}, subject)
+	err = m.Send("./utils/mailContent.html", map[string]string{"token": reset_token})
+	if err != nil {
+		return fmt.Errorf("Send email failed %v", err)
+	}
+	return nil
+}
+
+func (u *UserModel) CheckTokenResetPassword(email, reset_token string) error {
+	user, err := u.FindByEmail(email)
+	if err != nil {
+		return fmt.Errorf("Email failed")
+	}
+	if user.ResetToken != reset_token {
+		return fmt.Errorf("Token is failed")
+	}
+	return nil
+}
+
+//Reset password by email ...
+func (u *UserModel) ResetPassword(email, reset_token, new_password string) error {
+	user, err := u.FindByEmail(email)
+	if user == nil || err != nil {
+		return fmt.Errorf("User not found")
+	}
+	err = u.CheckTokenResetPassword(email, reset_token)
+	if err != nil {
+		return fmt.Errorf("Token is failed")
+	}
+	hashPass, err := HashPass(email, new_password)
+	if err != nil {
+		return fmt.Errorf("Save failed %v", err)
+	}
+	user.Password = hashPass
+	user.ResetToken = ""
+	err = u.Update(user)
+	if err != nil {
+		return fmt.Errorf("Save failed %v", err)
+	}
+	return nil
+}
+
 func (u *UserModel) GetProfile(email string) (*User, error) {
 	user, err := u.FindByEmail(email)
 	if err != nil {

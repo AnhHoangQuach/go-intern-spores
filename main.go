@@ -24,6 +24,8 @@ func main() {
 		userApi.POST("/verifyEmail", user.VerifyUser)
 		userApi.POST("/register", user.SignUp)
 		userApi.POST("/login", user.Login)
+		userApi.POST("/reset-link", user.ResetByLink)
+		userApi.POST("/reset-password", user.ResetPasswordUser)
 		userApi.GET("/profile", middlewares.Authenticate(), user.Profile)
 	}
 

@@ -26,6 +26,16 @@ type LoginUserInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type ResetLinkInput struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ResetPasswordInput struct {
+	Email       string `json:"email" binding:"required,email"`
+	ResetToken  string `json:"reset_token" binding:"required"`
+	NewPassword string `json:"new_password" binding:"required"`
+}
+
 // Import the userModel from the models
 var userModel = new(models.UserModel)
 
@@ -117,6 +127,42 @@ func (u *UserController) Profile(c *gin.Context) {
 		return
 	}
 	res := utils.BuildResponse(true, "Fetch Profile Success", result)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (u *UserController) ResetByLink(c *gin.Context) {
+	var input ResetLinkInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := userModel.ResetLink(input.Email)
+	if err != nil {
+		c.JSON(404, utils.BuildErrorResponse("Failed", err.Error(), nil))
+		c.Abort()
+		return
+	}
+
+	res := utils.BuildResponse(true, "Please check mail token to reset", nil)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (u *UserController) ResetPasswordUser(c *gin.Context) {
+	var input ResetPasswordInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := userModel.ResetPassword(input.Email, input.ResetToken, input.NewPassword)
+	if err != nil {
+		c.JSON(404, utils.BuildErrorResponse("Failed", err.Error(), nil))
+		c.Abort()
+		return
+	}
+
+	res := utils.BuildResponse(true, "Reset password success", nil)
 
 	c.JSON(http.StatusOK, res)
 }
