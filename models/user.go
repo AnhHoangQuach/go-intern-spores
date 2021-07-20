@@ -101,7 +101,7 @@ func (u *UserModel) SignUp(email, password, phone, address string) error {
 	m := utils.NewMailSender([]string{email}, subject)
 	err = m.Send("./utils/mailContent.html", map[string]string{"token": verify_token})
 	if err != nil {
-		fmt.Errorf("Send email failed %v", err)
+		return fmt.Errorf("Send email failed %v", err)
 	}
 
 	user = &User{
@@ -157,13 +157,13 @@ func (u *UserModel) LoginHandler(email string, password string) (*User, error) {
 		m := utils.NewMailSender([]string{user.Email}, subject)
 		err = m.Send("./utils/mailContent.html", map[string]string{"token": verify_token})
 		if err != nil {
-			fmt.Errorf("Send email failed %v", err)
+			return nil, fmt.Errorf("Send email failed %v", err)
 		}
 
 		user.VerifyToken = verify_token
 		err = u.Update(user)
 		if err != nil {
-			fmt.Errorf("Save failed %v", err)
+			return nil, fmt.Errorf("Save failed %v", err)
 		}
 		return nil, fmt.Errorf("This account hasn't been activated, a verification code has been sent to your email, please check")
 	}
