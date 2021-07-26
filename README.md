@@ -10,6 +10,11 @@
     "sendGridApiKey": "your api key of sendgrid"
 ```
 
+## How to run
+- Add config json to config
+- Add .env according .env.example
+- go run main.go
+
 ## Contributing
 
 - Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
