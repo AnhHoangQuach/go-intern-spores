@@ -56,7 +56,7 @@ func (u *UserController) SignUp(c *gin.Context) {
 		return
 	}
 
-	res := utils.BuildResponse(true, "Please check email to verify account", input)
+	res := utils.BuildResponse(true, "Please check email to verify account", nil)
 
 	c.JSON(http.StatusOK, res)
 }

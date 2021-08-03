@@ -18,6 +18,7 @@ type Item struct {
 	Metadata    string    `gorm:"size:255;not null" json:"metadata"`
 	Status      string    `gorm:"size:255;not null;default:Pending" json:"status"`
 	Type        string    `gorm:"size:255;not null" json:"type"`
+	Image       string    `json:"image"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// OwnerID     uint32    `gorm:"not null" json:"owner_id"`
@@ -54,7 +55,7 @@ func (i *ItemModel) Update(item *Item) error {
 	return nil
 }
 
-func (i *ItemModel) Create(name, description, currency, owner, creator, type_item string, price float64) (*Item, error) {
+func (i *ItemModel) Create(name, description, currency, owner, creator, type_item, image string, price float64) (*Item, error) {
 	var item = &Item{
 		Name:        name,
 		Description: description,
@@ -63,6 +64,7 @@ func (i *ItemModel) Create(name, description, currency, owner, creator, type_ite
 		Owner:       owner,
 		Creator:     creator,
 		Type:        type_item,
+		Image:       image,
 	}
 
 	err := i.Save(item)

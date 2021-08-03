@@ -19,6 +19,8 @@ func main() {
 	// Define the user controller
 	user := new(controllers.UserController)
 
+	r.Use(middlewares.CORSMiddleware())
+
 	userApi := r.Group("/auth")
 	{
 		userApi.POST("/verifyEmail", user.VerifyUser)

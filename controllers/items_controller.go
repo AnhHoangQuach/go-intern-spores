@@ -22,6 +22,7 @@ type CreateItemInput struct {
 	Price        float64            `json:"price" binding:"required`
 	Currency     string             `json:"currency" binding:"required`
 	Type         string             `json:"type" binding:"required`
+	Image        string             `json:"image" binding:"required"`
 	AuctionInput CreateAuctionInput `json:"create_auction_input"`
 }
 
@@ -66,7 +67,7 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 		return
 	}
 
-	item, err := itemModel.Create(input.Name, input.Description, input.Currency, user.Email, user.Email, input.Type, input.Price)
+	item, err := itemModel.Create(input.Name, input.Description, input.Currency, user.Email, user.Email, input.Type, input.Image, input.Price)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem creating item", err.Error(), nil))
