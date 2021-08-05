@@ -181,7 +181,7 @@ func (i *ItemController) GetItem(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (i *ItemController) GetAllItems(c *gin.Context) {
+func (i *ItemController) GetPrivateItems(c *gin.Context) {
 	getUser, _ := c.Get("User")
 	if getUser == nil {
 		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
@@ -331,5 +331,31 @@ func (i *ItemController) BuyItem(c *gin.Context) {
 	}
 
 	res := utils.BuildResponse(true, "Buy Success", tx)
+	c.JSON(http.StatusOK, res)
+}
+
+func (i *ItemController) GetPublicItems(c *gin.Context) {
+	var item models.Item
+	pagination := services.GeneratePaginationFromRequest(c)
+
+	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, "")
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil))
+		return
+	}
+
+	result := struct {
+		Items      *[]models.Item `json:"items"`
+		TotalPages int64          `json:"totalPages"`
+		TotalRows  int64          `json:"totalRows"`
+	}{
+		Items:      itemLists,
+		TotalPages: totalPages,
+		TotalRows:  totalRows,
+	}
+
+	res := utils.BuildResponse(true, "Success", result)
+
 	c.JSON(http.StatusOK, res)
 }
