@@ -58,7 +58,7 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 	}
 
 	if item.Owner != user.Email {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "You isn't owner of item", nil))
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "You aren't owner of item", nil))
 		return
 	}
 
