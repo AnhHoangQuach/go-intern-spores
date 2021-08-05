@@ -9,7 +9,7 @@ import (
 )
 
 func GeneratePaginationFromRequest(c *gin.Context) models.Pagination {
-	limit := 2
+	limit := 100
 	page := 1
 	sort := "created_at desc"
 
