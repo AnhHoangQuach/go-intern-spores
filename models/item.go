@@ -108,7 +108,16 @@ func (i *ItemModel) Pagination(item *Item, pagination *Pagination, owner string)
 	var items []Item
 	var totalRows int64
 	offset := (pagination.Page - 1) * pagination.Limit
-	queryBuilder := DB.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
+	queryBuilder := DB.Model(&Item{})
+
+	queryBuilder.Count(&totalRows)
+
+	if owner != "" {
+		queryBuilder = queryBuilder.Model(&Item{}).Where("owner = ?", owner)
+		queryBuilder.Count(&totalRows)
+	}
+
+	queryBuilder = queryBuilder.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 
 	// generate where query
 	searchs := pagination.Searchs
@@ -138,15 +147,7 @@ func (i *ItemModel) Pagination(item *Item, pagination *Pagination, owner string)
 		}
 	}
 
-	if owner == "" {
-		queryBuilder.Model(&Item{}).Find(&items)
-		DB.Model(&Item{}).Count(&totalRows)
-	} else {
-		DB.Model(&Item{}).Where("owner = ?", owner).Find(&items)
-		totalRows = int64(len(items))
-	}
-
-	print(totalRows)
+	queryBuilder.Model(&Item{}).Find(&items)
 
 	totalPages := int64(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
 	return &items, totalRows, totalPages, nil
