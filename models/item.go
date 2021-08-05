@@ -140,7 +140,7 @@ func (i *ItemModel) Pagination(item *Item, pagination *Pagination, owner string)
 
 	result := queryBuilder.Model(&Item{}).Where("owner = ?", owner).Find(&items)
 
-	result.Model(&Item{}).Count(&totalRows)
+	DB.Model(&Item{}).Count(&totalRows)
 	totalPages := int64(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
 	if result.Error != nil {
 		msg := result.Error

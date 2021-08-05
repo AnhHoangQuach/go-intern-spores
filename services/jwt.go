@@ -18,7 +18,7 @@ func CreateJWT(email string) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["email"] = email
-	claims["exp"] = time.Now().Add(time.Hour * 20).Unix() //Expire time is 20 hour
+	claims["exp"] = time.Now().Add(time.Hour * 24 * 7).Unix() //Expire time is one week
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("SECRET_JWT")))
 }
