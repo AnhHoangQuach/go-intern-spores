@@ -31,6 +31,7 @@ type UpdateItemInput struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	Currency    string  `json:"currency"`
+	Image       string  `json:"image"`
 }
 
 type Pagination struct {
@@ -268,8 +269,11 @@ func (i *ItemController) UpdateItem(c *gin.Context) {
 	if input.Currency != "" && input.Currency != item.Currency {
 		item.Currency = input.Currency
 	}
+	if input.Image != "" && input.Image != item.Image {
+		item.Image = input.Image
+	}
 
-	if input.Name == "" && input.Description == "" && input.Price == 0 && input.Currency == "" {
+	if input.Name == "" && input.Description == "" && input.Price == 0 && input.Currency == "" && input.Image == "" {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "Please provide info to update item", nil))
 		return
 	}
