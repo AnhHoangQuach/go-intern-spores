@@ -4,6 +4,7 @@ import (
 	"github.com/AnhHoangQuach/go-intern-spores/controllers"
 	"github.com/AnhHoangQuach/go-intern-spores/middlewares"
 	"github.com/AnhHoangQuach/go-intern-spores/models"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +20,7 @@ func main() {
 	// Define the user controller
 	user := new(controllers.UserController)
 
-	r.Use(middlewares.CORSMiddleware())
+	r.Use(middlewares.CORSMiddleware(), cors.Default())
 
 	userApi := r.Group("/auth")
 	{
