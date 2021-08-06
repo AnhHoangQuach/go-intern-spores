@@ -151,21 +151,6 @@ func (i *ItemController) DeleteItem(c *gin.Context) {
 }
 
 func (i *ItemController) GetItem(c *gin.Context) {
-	getUser, _ := c.Get("User")
-	if getUser == nil {
-		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
-		c.Abort()
-		return
-	}
-
-	user := getUser.(*models.User)
-
-	if user.Email == "" {
-		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
-		c.Abort()
-		return
-	}
-
 	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
@@ -173,12 +158,17 @@ func (i *ItemController) GetItem(c *gin.Context) {
 	}
 
 	item, err := itemModel.FindByID(uint32(id))
+	auction, _ := auctionModel.FindByItemId(uint32(id))
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not found", err.Error(), nil))
 		return
 	}
 
-	res := utils.BuildResponse(true, "Fetch Item Success", item)
+	res := utils.BuildResponse(true, "Fetch Item Success", gin.H{
+		"item":    item,
+		"auction": auction,
+	})
 	c.JSON(http.StatusOK, res)
 }
 
@@ -201,7 +191,7 @@ func (i *ItemController) GetPrivateItems(c *gin.Context) {
 	var item models.Item
 	pagination := services.GeneratePaginationFromRequest(c)
 
-	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, user.Email)
+	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, "Private", user.Email)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil))
@@ -326,7 +316,7 @@ func (i *ItemController) BuyItem(c *gin.Context) {
 	}
 
 	item.Owner = user.Email
-	item.Status = "Success"
+	item.Status = "Private"
 	err = itemModel.Update(item)
 
 	if err != nil {
@@ -342,7 +332,7 @@ func (i *ItemController) GetPublicItems(c *gin.Context) {
 	var item models.Item
 	pagination := services.GeneratePaginationFromRequest(c)
 
-	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, "")
+	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, "Public")
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil))

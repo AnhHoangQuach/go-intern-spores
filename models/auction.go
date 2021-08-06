@@ -6,14 +6,14 @@ import (
 )
 
 type Auction struct {
-	ID           uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	ItemID       uint32    `json:"item_id" binding:"required"`
-	InitialPrice float64   `json:"initial_price" binding:"required"`
-	FinalPrice   float64   `json:"final_price" binding:"required"`
-	Status       string    `gorm:"default:Pending" json:"status" binding:"required"`
-	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	EndAt        time.Time `json:"end_at" binding:"required"`
+	ID           uint32    `gorm:"primary_key;auto_increment" json:"id, omitempty"`
+	ItemID       uint32    `json:"item_id, omitempty" binding:"required"`
+	InitialPrice float64   `json:"initial_price, omitempty" binding:"required"`
+	FinalPrice   float64   `json:"final_price, omitempty" binding:"required"`
+	Status       string    `gorm:"default:Pending" json:"status, omitempty" binding:"required"`
+	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at, omitempty"`
+	UpdatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at, omitempty"`
+	EndAt        time.Time `json:"end_at, omitempty" binding:"required"`
 }
 
 type AuctionModel struct{}
@@ -55,7 +55,7 @@ func (a *AuctionModel) Create(item_id uint32, initial_price float64, end_at int)
 
 	err := a.Save(auction)
 	if err != nil {
-		return nil, fmt.Errorf("Create auction failed")
+		return &Auction{}, fmt.Errorf("Create auction failed")
 	}
 
 	return auction, nil
@@ -64,6 +64,14 @@ func (a *AuctionModel) Create(item_id uint32, initial_price float64, end_at int)
 func (a *AuctionModel) FindByID(id uint32) (*Auction, error) {
 	var result Auction
 	if err := DB.Where("id = ?", id).First(&result).Error; err != nil {
+		return &Auction{}, err
+	}
+	return &result, nil
+}
+
+func (a *AuctionModel) FindByItemId(id uint32) (*Auction, error) {
+	var result Auction
+	if err := DB.Where("item_id = ?", id).First(&result).Error; err != nil {
 		return nil, err
 	}
 	return &result, nil
@@ -80,15 +88,15 @@ func (a *AuctionModel) Delete(id uint32) error {
 func (a *AuctionModel) Bid(id uint32, amount float64) (*Auction, error) {
 	auction, err := a.FindByID(id)
 	if err != nil {
-		return nil, err
+		return &Auction{}, err
 	}
 	if amount <= auction.FinalPrice {
-		return nil, fmt.Errorf("Please bid bigger than now price")
+		return &Auction{}, fmt.Errorf("Please bid bigger than now price")
 	}
 	auction.FinalPrice = amount
 	err = a.Update(auction)
 	if err != nil {
-		return nil, fmt.Errorf("Bid is error")
+		return &Auction{}, fmt.Errorf("Bid is error")
 	}
 	return auction, nil
 }

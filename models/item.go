@@ -8,19 +8,19 @@ import (
 )
 
 type Item struct {
-	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Name        string    `gorm:"size:255;not null" json:"name"`
-	Description string    `gorm:"size:255;not null" json:"description"`
-	Price       float64   `json:"price"`
-	Currency    string    `gorm:"size:255;not null" json:"currency"`
-	Owner       string    `gorm:"size:255;not null" json:"owner"`
-	Creator     string    `gorm:"size:255;not null" json:"creator"`
-	Metadata    string    `gorm:"size:255;not null" json:"metadata"`
-	Status      string    `gorm:"size:255;not null;default:Pending" json:"status"`
-	Type        string    `gorm:"size:255;not null" json:"type"`
-	Image       string    `json:"image"`
-	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID          uint32    `gorm:"primary_key;auto_increment" json:"id, omitempty"`
+	Name        string    `gorm:"size:255;not null" json:"name, omitempty"`
+	Description string    `gorm:"size:255;not null" json:"description, omitempty"`
+	Price       float64   `json:"price, omitempty"`
+	Currency    string    `gorm:"size:255;not null" json:"currency, omitempty"`
+	Owner       string    `gorm:"size:255;not null" json:"owner, omitempty"`
+	Creator     string    `gorm:"size:255;not null" json:"creator, omitempty"`
+	Metadata    string    `gorm:"size:255;not null" json:"metadata, omitempty"`
+	Status      string    `gorm:"size:255;not null;default:Private" json:"status, omitempty"`
+	Type        string    `gorm:"size:255;not null" json:"type, omitempty"`
+	Image       string    `json:"image, omitempty"`
+	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at, omitempty"`
+	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at, omitempty"`
 	// OwnerID     uint32    `gorm:"not null" json:"owner_id"`
 }
 
@@ -104,18 +104,20 @@ func (i *ItemModel) AddMetadataLink(id uint32, metadata string) error {
 	return nil
 }
 
-func (i *ItemModel) Pagination(item *Item, pagination *Pagination, owner string) (*[]Item, int64, int64, error) {
+func (i *ItemModel) Pagination(item *Item, pagination *Pagination, params ...string) (*[]Item, int64, int64, error) {
 	var items []Item
 	var totalRows int64
 	offset := (pagination.Page - 1) * pagination.Limit
+
 	queryBuilder := DB.Model(&Item{})
 
-	queryBuilder.Count(&totalRows)
-
-	if owner != "" {
-		queryBuilder = queryBuilder.Model(&Item{}).Where("owner = ?", owner)
-		queryBuilder.Count(&totalRows)
+	if len(params) == 2 {
+		queryBuilder = DB.Model(&Item{}).Where(&Item{Status: params[0], Owner: params[1]})
+	} else if len(params) == 1 {
+		queryBuilder = DB.Model(&Item{}).Where(&Item{Status: params[0]})
 	}
+
+	queryBuilder.Count(&totalRows)
 
 	queryBuilder = queryBuilder.Limit(pagination.Limit).Offset(offset).Order(pagination.Sort)
 
