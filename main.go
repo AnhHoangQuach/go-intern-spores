@@ -30,6 +30,7 @@ func main() {
 		userApi.POST("/reset-link", user.ResetByLink)
 		userApi.POST("/reset-password", user.ResetPasswordUser)
 		userApi.GET("/profile", middlewares.Authenticate(), user.Profile)
+		userApi.PATCH("/profile", middlewares.Authenticate(), user.ChangeProfile)
 	}
 
 	item := new(controllers.ItemController)

@@ -30,6 +30,8 @@ type User struct {
 	Address     string    `gorm:"size:255;not null" json:"address"`
 	VerifyToken string    `gorm:"size:255;not null" json:"verify_token"`
 	ResetToken  string    `gorm:"size:255;not null" json:"reset_token"`
+	Cover       string    `json:"cover"`
+	Facebook    string    `json:"facebook"`
 	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	// Items       []Item    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignkey:id"`
@@ -85,7 +87,7 @@ func CheckPasswordHash(email, hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(email+password))
 }
 
-func (u *UserModel) SignUp(email, password, phone, address string) error {
+func (u *UserModel) SignUp(email, password, phone, address, cover, facebook string) error {
 	user, err := u.FindByEmail(email)
 	verify_token := RandomSixDigits(100000, 999999)
 	subject := "Email Verify Token"
@@ -109,6 +111,8 @@ func (u *UserModel) SignUp(email, password, phone, address string) error {
 		Password:    hashPass,
 		Phone:       phone,
 		Address:     address,
+		Cover:       cover,
+		Facebook:    facebook,
 		VerifyToken: verify_token,
 	}
 
@@ -226,12 +230,4 @@ func (u *UserModel) ResetPassword(email, reset_token, new_password string) error
 		return fmt.Errorf("Save failed %v", err)
 	}
 	return nil
-}
-
-func (u *UserModel) GetProfile(email string) (*User, error) {
-	user, err := u.FindByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
 }

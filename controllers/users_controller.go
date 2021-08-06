@@ -14,6 +14,8 @@ type RegisterUserInput struct {
 	Password string `json:"password" binding:"required"`
 	Phone    string `json:"phone" binding:"required"`
 	Address  string `json:"address" binding:"required"`
+	Cover    string `json:"cover"`
+	Facebook string `json:"facebook"`
 }
 
 type VerifyInfo struct {
@@ -28,6 +30,13 @@ type LoginUserInput struct {
 
 type ResetLinkInput struct {
 	Email string `json:"email" binding:"required,email"`
+}
+
+type UserProfileInput struct {
+	Phone    string `gorm:"size:255;not null;unique" json:"phone"`
+	Address  string `gorm:"size:255;not null" json:"address"`
+	Cover    string `json:"cover"`
+	Facebook string `json:"facebook"`
 }
 
 type ResetPasswordInput struct {
@@ -48,7 +57,7 @@ func (u *UserController) SignUp(c *gin.Context) {
 		return
 	}
 
-	err := userModel.SignUp(input.Email, input.Password, input.Phone, input.Address)
+	err := userModel.SignUp(input.Email, input.Password, input.Phone, input.Address, input.Cover, input.Facebook)
 
 	if err != nil {
 		c.JSON(400, gin.H{"message": "Problem creating an account"})
@@ -120,7 +129,7 @@ func (u *UserController) Profile(c *gin.Context) {
 		return
 	}
 
-	result, err := userModel.GetProfile(user.Email)
+	result, err := userModel.FindByEmail(user.Email)
 	if err != nil {
 		c.JSON(404, utils.BuildErrorResponse("Authenticate is failed", err.Error(), nil))
 		c.Abort()
@@ -158,11 +167,47 @@ func (u *UserController) ResetPasswordUser(c *gin.Context) {
 	err := userModel.ResetPassword(input.Email, input.ResetToken, input.NewPassword)
 	if err != nil {
 		c.JSON(404, utils.BuildErrorResponse("Failed", err.Error(), nil))
-		c.Abort()
+		c.Status(http.StatusBadRequest)
 		return
 	}
 
 	res := utils.BuildResponse(true, "Reset password success", nil)
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (u *UserController) ChangeProfile(c *gin.Context) {
+	getUser, _ := c.Get("User")
+	if getUser == nil {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
+		return
+	}
+	user := getUser.(*models.User)
+	if user.Email == "" {
+		utils.BuildErrorResponse("Please login", "You not logged in", nil)
+		return
+	}
+
+	var input UserProfileInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user.Phone = input.Phone
+	user.Address = input.Address
+	user.Cover = input.Cover
+	user.Facebook = input.Facebook
+
+	err := userModel.Update(user)
+	if err != nil {
+		c.JSON(404, utils.BuildErrorResponse("Failed", err.Error(), nil))
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	res := utils.BuildResponse(true, "Change Profile Success", nil)
 
 	c.JSON(http.StatusOK, res)
 }
