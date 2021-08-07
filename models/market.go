@@ -1,24 +1,6 @@
 package models
 
-import "time"
-
 type MarketModel struct{}
-
-type ItemHot struct {
-	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Name        string    `gorm:"size:255;not null" json:"name"`
-	Description string    `gorm:"size:255;not null" json:"description"`
-	Price       float64   `json:"price"`
-	Currency    string    `gorm:"size:255;not null" json:"currency"`
-	Owner       string    `gorm:"size:255;not null" json:"owner"`
-	Creator     string    `gorm:"size:255;not null" json:"creator"`
-	Metadata    string    `gorm:"size:255;not null" json:"metadata"`
-	Status      string    `gorm:"size:255;not null;default:Pending" json:"status"`
-	Type        string    `gorm:"size:255;not null" json:"type"`
-	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	TxsNum      int       `json:"txs_num"`
-}
 
 func (m *MarketModel) CalculateRevenue(day, month, year, queryType int, started, to string) float64 {
 	var price float64

@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/AnhHoangQuach/go-intern-spores/models"
 	"github.com/AnhHoangQuach/go-intern-spores/utils"
@@ -25,12 +24,6 @@ type BidAuctionInput struct {
 }
 
 func (a *AuctionController) UpdateAuction(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
-		return
-	}
-
 	getUser, _ := c.Get("User")
 	if getUser == nil {
 		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
@@ -43,14 +36,14 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 		return
 	}
 
-	auction, err := aModel.FindByID(uint32(id))
+	auction, err := aModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Auction is not existed", err.Error(), nil))
 		return
 	}
 
-	item, err := iModel.FindByID(auction.ID)
+	item, err := iModel.FindByID(auction.Id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
@@ -95,7 +88,8 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 }
 
 func (a *AuctionController) DeleteAuction(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	id := c.Params.ByName("id")
+
 	getUser, _ := c.Get("User")
 	if getUser == nil {
 		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
@@ -108,14 +102,14 @@ func (a *AuctionController) DeleteAuction(c *gin.Context) {
 		return
 	}
 
-	auction, err := aModel.FindByID(uint32(id))
+	auction, err := aModel.FindByID(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Auction is not existed", err.Error(), nil))
 		return
 	}
 
-	item, err := iModel.FindByID(auction.ItemID)
+	item, err := iModel.FindByID(auction.ItemId)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
@@ -127,7 +121,7 @@ func (a *AuctionController) DeleteAuction(c *gin.Context) {
 		return
 	}
 
-	err = aModel.Delete(uint32(id))
+	err = aModel.Delete(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Auction Failed", err.Error(), nil))
@@ -139,7 +133,7 @@ func (a *AuctionController) DeleteAuction(c *gin.Context) {
 }
 
 func (a *AuctionController) BidAuction(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	id := c.Params.ByName("id")
 	getUser, _ := c.Get("User")
 	if getUser == nil {
 		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
@@ -152,14 +146,14 @@ func (a *AuctionController) BidAuction(c *gin.Context) {
 		return
 	}
 
-	auction, err := aModel.FindByID(uint32(id))
+	auction, err := aModel.FindByID(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Auction is not existed", err.Error(), nil))
 		return
 	}
 
-	item, err := iModel.FindByID(auction.ItemID)
+	item, err := iModel.FindByID(auction.ItemId)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
@@ -177,7 +171,7 @@ func (a *AuctionController) BidAuction(c *gin.Context) {
 		return
 	}
 
-	auctionAfterBid, err := auctionModel.Bid(uint32(id), input.Amount)
+	auctionAfterBid, err := auctionModel.Bid(id, input.Amount)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Bid Auction Failed", err.Error(), nil))
@@ -186,7 +180,7 @@ func (a *AuctionController) BidAuction(c *gin.Context) {
 
 	hash := utils.NewSHA1Hash()
 
-	tx, err := txModel.Create(hash, item.ID, user.Email, item.Owner, input.Amount, float64(input.Amount)*0.1)
+	tx, err := txModel.Create(hash, item.Id, user.Email, item.Owner, input.Amount, float64(input.Amount)*0.1)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Transaction Failed", err.Error(), nil))
 		return

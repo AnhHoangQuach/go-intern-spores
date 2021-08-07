@@ -23,7 +23,7 @@ func OK(done chan bool) bool {
 }
 
 type User struct {
-	ID          uint32    `gorm:"primary_key;auto_increment" json:"id"`
+	Id          string    `gorm:"primary_key;size:255;not null" json:"id"`
 	Email       string    `gorm:"size:100;not null;unique" json:"email"`
 	Password    string    `gorm:"size:100;not null;" json:"password"`
 	Phone       string    `gorm:"size:255;not null;unique" json:"phone"`
@@ -107,6 +107,7 @@ func (u *UserModel) SignUp(email, password, phone, address, cover, facebook stri
 	}
 
 	user = &User{
+		Id:          utils.NewGuuid().NewString(),
 		Email:       email,
 		Password:    hashPass,
 		Phone:       phone,

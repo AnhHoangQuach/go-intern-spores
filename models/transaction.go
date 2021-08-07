@@ -5,11 +5,13 @@ import (
 	"math"
 	"strings"
 	"time"
+
+	"github.com/AnhHoangQuach/go-intern-spores/utils"
 )
 
 type Transaction struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	ItemID    uint32    `json:"item_id" binding:"required"`
+	Id        string    `gorm:"primary_key;size:255;not null" json:"id"`
+	ItemId    string    `gorm:"size:255;not null" json:"item_id" binding:"required"`
 	TxHash    string    `gorm:"size:255;not null" json:"tx_hash" binding:"required"`
 	Buyer     string    `gorm:"size:255;not null" json:"buyer" binding:"required"`
 	Seller    string    `gorm:"size:255;not null" json:"seller" binding:"required"`
@@ -47,9 +49,10 @@ func (t *TxModel) Update(tx *Transaction) error {
 	return nil
 }
 
-func (t *TxModel) Create(hash string, item_id uint32, buyer, seller string, price float64, fee float64) (*Transaction, error) {
+func (t *TxModel) Create(hash string, item_id string, buyer, seller string, price float64, fee float64) (*Transaction, error) {
 	var tx = &Transaction{
-		ItemID: item_id,
+		Id:     utils.NewGuuid().NewString(),
+		ItemId: item_id,
 		TxHash: hash,
 		Buyer:  buyer,
 		Seller: seller,
@@ -70,7 +73,7 @@ func (t *TxModel) Create(hash string, item_id uint32, buyer, seller string, pric
 	return tx, nil
 }
 
-func (t *TxModel) TxPagination(tx *Transaction, pagination *Pagination, item_id uint32) (*[]Transaction, int64, int64, error) {
+func (t *TxModel) TxPagination(tx *Transaction, pagination *Pagination, item_id string) (*[]Transaction, int64, int64, error) {
 	var trans []Transaction
 	var totalRows int64
 	offset := (pagination.Page - 1) * pagination.Limit

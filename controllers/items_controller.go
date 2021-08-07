@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/AnhHoangQuach/go-intern-spores/models"
 	"github.com/AnhHoangQuach/go-intern-spores/services"
@@ -76,8 +75,8 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 		return
 	}
 
-	metadata := fmt.Sprintf("localhost:8080/items/%d", item.ID)
-	err = itemModel.AddMetadataLink(item.ID, metadata)
+	metadata := fmt.Sprintf("localhost:8080/items/%s", item.Id)
+	err = itemModel.AddMetadataLink(item.Id, metadata)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem when add metadata link", err.Error(), nil))
@@ -86,7 +85,7 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 	}
 
 	if input.Type == "Auction" {
-		auction, err := auctionModel.Create(item.ID, input.AuctionInput.InitialPrice, input.AuctionInput.EndAt)
+		auction, err := auctionModel.Create(item.Id, input.AuctionInput.InitialPrice, input.AuctionInput.EndAt)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem when create auction", err.Error(), nil))
 			c.Abort()
@@ -112,11 +111,7 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 }
 
 func (i *ItemController) DeleteItem(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
-		return
-	}
+	id := c.Params.ByName("id")
 
 	token := c.Request.Header["Authorization"]
 	if len(token) == 0 || token[0] == "" {
@@ -127,7 +122,7 @@ func (i *ItemController) DeleteItem(c *gin.Context) {
 
 	user, err := services.ParseJWTToken(token[0])
 
-	item, err := itemModel.FindByID(uint32(id))
+	item, err := itemModel.FindByID(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
@@ -139,7 +134,7 @@ func (i *ItemController) DeleteItem(c *gin.Context) {
 		return
 	}
 
-	err = itemModel.Delete(uint32(id))
+	err = itemModel.Delete(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Item Failed", err.Error(), nil))
@@ -150,56 +145,33 @@ func (i *ItemController) DeleteItem(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (i *ItemController) GetPublicItem(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
-		return
-	}
+func (i *ItemController) GetItem(c *gin.Context) {
+	id := c.Params.ByName("id")
 
-	item, err := itemModel.FindByPublic(uint32(id))
-	auction, _ := auctionModel.FindByItemId(uint32(id))
+	item, err := itemModel.FindByID(id)
+
+	auction, _ := auctionModel.FindByItemId(id)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not found", err.Error(), nil))
 		return
 	}
 
-	res := utils.BuildResponse(true, "Fetch Item Success", gin.H{
-		"item":    item,
-		"auction": auction,
-	})
-	c.JSON(http.StatusOK, res)
-}
+	if item.Status == "Private" {
+		getUser, _ := c.Get("User")
+		if getUser == nil {
+			c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+			c.Abort()
+			return
+		}
 
-func (i *ItemController) GetPrivateItem(c *gin.Context) {
-	token := c.Request.Header["Authorization"]
-	if len(token) == 0 || token[0] == "" {
-		// Abort with error
-		utils.BuildErrorResponse("Error", "You are not logged in", nil)
-		return
-	}
+		user := getUser.(*models.User)
 
-	user, err := services.ParseJWTToken(token[0])
-
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
-		return
-	}
-
-	item, err := itemModel.FindByPrivate(uint32(id), user.Email)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not found", err.Error(), nil))
-		return
-	}
-
-	auction, _ := auctionModel.FindByItemId(uint32(id))
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not found", err.Error(), nil))
-		return
+		if user.Email == "" || item.Owner != user.Email {
+			c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+			c.Abort()
+			return
+		}
 	}
 
 	res := utils.BuildResponse(true, "Fetch Item Success", gin.H{
@@ -251,22 +223,22 @@ func (i *ItemController) GetPrivateItems(c *gin.Context) {
 }
 
 func (i *ItemController) UpdateItem(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
+	getUser, _ := c.Get("User")
+	if getUser == nil {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
 		return
 	}
 
-	token := c.Request.Header["Authorization"]
-	if len(token) == 0 || token[0] == "" {
-		// Abort with error
-		utils.BuildErrorResponse("Error", "You are not logged in", nil)
+	user := getUser.(*models.User)
+
+	if user.Email == "" {
+		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
+		c.Abort()
 		return
 	}
 
-	user, err := services.ParseJWTToken(token[0])
-
-	item, err := itemModel.FindByID(uint32(id))
+	item, err := itemModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
@@ -317,12 +289,6 @@ func (i *ItemController) UpdateItem(c *gin.Context) {
 }
 
 func (i *ItemController) BuyItem(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
-		return
-	}
-
 	token := c.Request.Header["Authorization"]
 	fmt.Println(token)
 	if len(token) == 0 || token[0] == "" {
@@ -333,7 +299,7 @@ func (i *ItemController) BuyItem(c *gin.Context) {
 
 	user, err := services.ParseJWTToken(token[0])
 
-	item, err := itemModel.FindByID(uint32(id))
+	item, err := itemModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
@@ -347,7 +313,7 @@ func (i *ItemController) BuyItem(c *gin.Context) {
 
 	hash := utils.NewSHA1Hash()
 
-	tx, err := txModel.Create(hash, item.ID, user.Email, item.Owner, item.Price, float64(item.Price)*0.1)
+	tx, err := txModel.Create(hash, item.Id, user.Email, item.Owner, item.Price, float64(item.Price)*0.1)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Transaction Failed", err.Error(), nil))
 		return
@@ -393,12 +359,6 @@ func (i *ItemController) GetPublicItems(c *gin.Context) {
 }
 
 func (i *ItemController) PutOnMarket(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("ID is not valid", err.Error(), nil))
-		return
-	}
-
 	getUser, _ := c.Get("User")
 	if getUser == nil {
 		c.JSON(404, utils.BuildErrorResponse("Please Login", "Authenticate is failed", nil))
@@ -412,7 +372,7 @@ func (i *ItemController) PutOnMarket(c *gin.Context) {
 		return
 	}
 
-	item, err := itemModel.FindByID(uint32(id))
+	item, err := itemModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
