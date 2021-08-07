@@ -83,6 +83,22 @@ func (i *ItemModel) FindByID(id uint32) (*Item, error) {
 	return &result, nil
 }
 
+func (i *ItemModel) FindByPrivate(id uint32, owner string) (*Item, error) {
+	var result Item
+	if err := DB.Where(&Item{ID: id, Status: "Private", Owner: owner}).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+func (i *ItemModel) FindByPublic(id uint32) (*Item, error) {
+	var result Item
+	if err := DB.Where(&Item{ID: id, Status: "Public"}).First(&result).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
 func (i *ItemModel) Delete(id uint32) error {
 	var result Item
 	if err := DB.Where("id = ?", id).Delete(&result).Error; err != nil {

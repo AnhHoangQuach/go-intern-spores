@@ -43,11 +43,13 @@ func main() {
 		itemApi.POST("/", middlewares.Authenticate(), item.CreateItem)
 		itemApi.DELETE("/:id", middlewares.Authenticate(), item.DeleteItem)
 		itemApi.GET("/public", middlewares.Authenticate(), item.GetPublicItems)
-		itemApi.GET("/public/:id", middlewares.Authenticate(), item.GetItem)
 		itemApi.GET("/private", middlewares.Authenticate(), item.GetPrivateItems)
+		itemApi.GET("/public/:id", middlewares.Authenticate(), item.GetPublicItem)
+		itemApi.GET("/private/:id", middlewares.Authenticate(), item.GetPrivateItem)
 		itemApi.PATCH("/:id", middlewares.Authenticate(), item.UpdateItem)
 		itemApi.PUT("/:id", middlewares.Authenticate(), item.UpdateItem)
 		itemApi.POST("/:id/buy", middlewares.Authenticate(), item.BuyItem)
+		itemApi.POST("/:id/put-on-market", middlewares.Authenticate(), item.PutOnMarket)
 		itemApi.GET("/:id/transactions", tx.GetTransOfItem)
 	}
 
