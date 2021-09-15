@@ -7,7 +7,7 @@ import (
 )
 
 type ConfigOption struct {
-	PostgreDB      string
+	PostgreDB string
 }
 
 type MailServerInfo struct {
@@ -34,7 +34,7 @@ func GetConfigOption() *ConfigOption {
 	err = json.NewDecoder(file).Decode(&config)
 	if err != nil {
 		log.Fatal(err)
-		return nil 
+		return nil
 	}
 	return config
 }

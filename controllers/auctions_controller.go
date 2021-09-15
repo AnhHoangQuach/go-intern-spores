@@ -39,19 +39,28 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 	auction, err := aModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Auction is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Auction is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	item, err := iModel.FindByID(auction.Id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	if item.Owner != user.Email {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "You aren't owner of item", nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Failed", "You aren't owner of item", nil),
+		)
 		return
 	}
 
@@ -72,14 +81,20 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 	}
 
 	if input.InitialPrice == 0 && input.FinalPrice == 0 && input.EndAt == 0 {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "Please provide info to update item", nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Failed", "Please provide info to update item", nil),
+		)
 		return
 	}
 
 	err = aModel.Update(auction)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Update Auction Failed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Update Auction Failed", err.Error(), nil),
+		)
 		return
 	}
 
@@ -105,26 +120,38 @@ func (a *AuctionController) DeleteAuction(c *gin.Context) {
 	auction, err := aModel.FindByID(id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Auction is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Auction is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	item, err := iModel.FindByID(auction.ItemId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	if item.Owner != user.Email {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Item Failed", "You isn't owner of item", nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Delete Item Failed", "You isn't owner of item", nil),
+		)
 		return
 	}
 
 	err = aModel.Delete(id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Auction Failed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Delete Auction Failed", err.Error(), nil),
+		)
 		return
 	}
 
@@ -149,19 +176,28 @@ func (a *AuctionController) BidAuction(c *gin.Context) {
 	auction, err := aModel.FindByID(id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Auction is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Auction is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	item, err := iModel.FindByID(auction.ItemId)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	if item.Owner == user.Email {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Bid Auction Failed", "This is your item", nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Bid Auction Failed", "This is your item", nil),
+		)
 		return
 	}
 
@@ -174,15 +210,28 @@ func (a *AuctionController) BidAuction(c *gin.Context) {
 	auctionAfterBid, err := auctionModel.Bid(id, input.Amount)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Bid Auction Failed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Bid Auction Failed", err.Error(), nil),
+		)
 		return
 	}
 
 	hash := utils.NewSHA1Hash()
 
-	tx, err := txModel.Create(hash, item.Id, user.Email, item.Owner, input.Amount, float64(input.Amount)*0.1)
+	tx, err := txModel.Create(
+		hash,
+		item.Id,
+		user.Email,
+		item.Owner,
+		input.Amount,
+		float64(input.Amount)*0.1,
+	)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Transaction Failed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Transaction Failed", err.Error(), nil),
+		)
 		return
 	}
 

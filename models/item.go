@@ -10,19 +10,19 @@ import (
 )
 
 type Item struct {
-	Id          string    `gorm:"primary_key;size:255;not null" json:"id"`
-	Name        string    `gorm:"size:255;not null" json:"name"`
-	Description string    `gorm:"size:255;not null" json:"description"`
-	Price       float64   `json:"price"`
-	Currency    string    `gorm:"size:255;not null" json:"currency"`
-	Owner       string    `gorm:"size:255;not null" json:"owner"`
-	Creator     string    `gorm:"size:255;not null" json:"creator"`
-	Metadata    string    `gorm:"size:255;not null" json:"metadata"`
+	Id          string    `gorm:"primary_key;size:255;not null"     json:"id"`
+	Name        string    `gorm:"size:255;not null"                 json:"name"`
+	Description string    `gorm:"size:255;not null"                 json:"description"`
+	Price       float64   `                                         json:"price"`
+	Currency    string    `gorm:"size:255;not null"                 json:"currency"`
+	Owner       string    `gorm:"size:255;not null"                 json:"owner"`
+	Creator     string    `gorm:"size:255;not null"                 json:"creator"`
+	Metadata    string    `gorm:"size:255;not null"                 json:"metadata"`
 	Status      string    `gorm:"size:255;not null;default:Private" json:"status"`
-	Type        string    `gorm:"size:255;not null" json:"type"`
-	Image       string    `json:"image"`
-	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	Type        string    `gorm:"size:255;not null"                 json:"type"`
+	Image       string    `                                         json:"image"`
+	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP"         json:"created_at"`
+	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP"         json:"updated_at"`
 	// OwnerID     uint32    `gorm:"not null" json:"owner_id"`
 }
 
@@ -57,7 +57,10 @@ func (i *ItemModel) Update(item *Item) error {
 	return nil
 }
 
-func (i *ItemModel) Create(name, description, currency, owner, creator, type_item, image string, price float64) (*Item, error) {
+func (i *ItemModel) Create(
+	name, description, currency, owner, creator, type_item, image string,
+	price float64,
+) (*Item, error) {
 	var item = &Item{
 		Id:          utils.NewGuuid().NewString(),
 		Name:        name,
@@ -107,7 +110,11 @@ func (i *ItemModel) AddMetadataLink(id string, metadata string) error {
 	return nil
 }
 
-func (i *ItemModel) Pagination(item *Item, pagination *Pagination, params ...string) (*[]Item, int64, int64, error) {
+func (i *ItemModel) Pagination(
+	item *Item,
+	pagination *Pagination,
+	params ...string,
+) (*[]Item, int64, int64, error) {
 	var items []Item
 	var totalRows int64
 	offset := (pagination.Page - 1) * pagination.Limit

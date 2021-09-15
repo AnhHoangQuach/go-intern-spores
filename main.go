@@ -15,8 +15,6 @@ func main() {
 	// Connect to database
 	models.ConnectDB()
 
-	// Routes
-
 	// Define the user controller
 	user := new(controllers.UserController)
 

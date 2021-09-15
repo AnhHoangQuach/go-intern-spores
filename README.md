@@ -11,6 +11,7 @@
 ```
 
 ## How to run
+
 - Add config json to config
 - Add .env according .env.example
 - go run main.go
@@ -23,3 +24,8 @@
 ## License
 
 - v0.1
+
+## Package
+
+- https://github.com/segmentio/golines
+- To format code in golang

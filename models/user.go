@@ -24,16 +24,16 @@ func OK(done chan bool) bool {
 
 type User struct {
 	Id          string    `gorm:"primary_key;size:255;not null" json:"id"`
-	Email       string    `gorm:"size:100;not null;unique" json:"email"`
-	Password    string    `gorm:"size:100;not null;" json:"password"`
-	Phone       string    `gorm:"size:255;not null;unique" json:"phone"`
-	Address     string    `gorm:"size:255;not null" json:"address"`
-	VerifyToken string    `gorm:"size:255;not null" json:"verify_token"`
-	ResetToken  string    `gorm:"size:255;not null" json:"reset_token"`
-	Cover       string    `json:"cover"`
-	Facebook    string    `json:"facebook"`
-	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	Email       string    `gorm:"size:100;not null;unique"      json:"email"`
+	Password    string    `gorm:"size:100;not null;"            json:"password"`
+	Phone       string    `gorm:"size:255;not null;unique"      json:"phone"`
+	Address     string    `gorm:"size:255;not null"             json:"address"`
+	VerifyToken string    `gorm:"size:255;not null"             json:"verify_token"`
+	ResetToken  string    `gorm:"size:255;not null"             json:"reset_token"`
+	Cover       string    `                                     json:"cover"`
+	Facebook    string    `                                     json:"facebook"`
+	CreatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP"     json:"created_at"`
+	UpdatedAt   time.Time `gorm:"default:CURRENT_TIMESTAMP"     json:"updated_at"`
 	// Items       []Item    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;foreignkey:id"`
 }
 
@@ -170,7 +170,9 @@ func (u *UserModel) LoginHandler(email string, password string) (*User, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Save failed %v", err)
 		}
-		return nil, fmt.Errorf("This account hasn't been activated, a verification code has been sent to your email, please check")
+		return nil, fmt.Errorf(
+			"This account hasn't been activated, a verification code has been sent to your email, please check",
+		)
 	}
 
 	return user, nil

@@ -10,21 +10,21 @@ import (
 )
 
 type RegisterUserInput struct {
-	Email    string `json:"email" binding:"required,email"`
+	Email    string `json:"email"    binding:"required,email"`
 	Password string `json:"password" binding:"required"`
-	Phone    string `json:"phone" binding:"required"`
-	Address  string `json:"address" binding:"required"`
+	Phone    string `json:"phone"    binding:"required"`
+	Address  string `json:"address"  binding:"required"`
 	Cover    string `json:"cover"`
 	Facebook string `json:"facebook"`
 }
 
 type VerifyInfo struct {
-	Email       string `json:"email" binding:"required"`
+	Email       string `json:"email"        binding:"required"`
 	VerifyToken string `json:"verify_token" binding:"required"`
 }
 
 type LoginUserInput struct {
-	Email    string `json:"email" binding:"required,email"`
+	Email    string `json:"email"    binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -34,14 +34,14 @@ type ResetLinkInput struct {
 
 type UserProfileInput struct {
 	Phone    string `gorm:"size:255;not null;unique" json:"phone"`
-	Address  string `gorm:"size:255;not null" json:"address"`
-	Cover    string `json:"cover"`
-	Facebook string `json:"facebook"`
+	Address  string `gorm:"size:255;not null"        json:"address"`
+	Cover    string `                                json:"cover"`
+	Facebook string `                                json:"facebook"`
 }
 
 type ResetPasswordInput struct {
-	Email       string `json:"email" binding:"required,email"`
-	ResetToken  string `json:"reset_token" binding:"required"`
+	Email       string `json:"email"        binding:"required,email"`
+	ResetToken  string `json:"reset_token"  binding:"required"`
 	NewPassword string `json:"new_password" binding:"required"`
 }
 
@@ -57,7 +57,14 @@ func (u *UserController) SignUp(c *gin.Context) {
 		return
 	}
 
-	err := userModel.SignUp(input.Email, input.Password, input.Phone, input.Address, input.Cover, input.Facebook)
+	err := userModel.SignUp(
+		input.Email,
+		input.Password,
+		input.Phone,
+		input.Address,
+		input.Cover,
+		input.Facebook,
+	)
 
 	if err != nil {
 		c.JSON(400, gin.H{"message": "Problem creating an account"})
