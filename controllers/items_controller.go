@@ -18,7 +18,7 @@ type CreateAuctionInput struct {
 type CreateItemInput struct {
 	Name         string             `json:"name" binding:"required`
 	Description  string             `json:"description"`
-	Price        float64            `json:"price" binding:"required`
+	Price        float64            `json:"price"`
 	Currency     string             `json:"currency" binding:"required`
 	Type         string             `json:"type" binding:"required`
 	Image        string             `json:"image" binding:"required"`
@@ -67,10 +67,26 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 		return
 	}
 
-	item, err := itemModel.Create(input.Name, input.Description, input.Currency, user.Email, user.Email, input.Type, input.Image, input.Price)
+	if input.Type == "Auction" {
+		input.Price = input.AuctionInput.InitialPrice
+	}
+
+	item, err := itemModel.Create(
+		input.Name,
+		input.Description,
+		input.Currency,
+		user.Email,
+		user.Email,
+		input.Type,
+		input.Image,
+		input.Price,
+	)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem creating item", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Problem creating item", err.Error(), nil),
+		)
 		c.Abort()
 		return
 	}
@@ -79,15 +95,25 @@ func (i *ItemController) CreateItem(c *gin.Context) {
 	err = itemModel.AddMetadataLink(item.Id, metadata)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem when add metadata link", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Problem when add metadata link", err.Error(), nil),
+		)
 		c.Abort()
 		return
 	}
 
 	if input.Type == "Auction" {
-		auction, err := auctionModel.Create(item.Id, input.AuctionInput.InitialPrice, input.AuctionInput.EndAt)
+		auction, err := auctionModel.Create(
+			item.Id,
+			input.AuctionInput.InitialPrice,
+			input.AuctionInput.EndAt,
+		)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Problem when create auction", err.Error(), nil))
+			c.JSON(
+				http.StatusBadRequest,
+				utils.BuildErrorResponse("Problem when create auction", err.Error(), nil),
+			)
 			c.Abort()
 			return
 		}
@@ -125,19 +151,28 @@ func (i *ItemController) DeleteItem(c *gin.Context) {
 	item, err := itemModel.FindByID(id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	if item.Owner != user.Email {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Item Failed", "You isn't owner of item", nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Delete Item Failed", "You isn't owner of item", nil),
+		)
 		return
 	}
 
 	err = itemModel.Delete(id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Item Failed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Delete Item Failed", err.Error(), nil),
+		)
 		return
 	}
 
@@ -153,7 +188,10 @@ func (i *ItemController) GetItem(c *gin.Context) {
 	auction, _ := auctionModel.FindByItemId(id)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not found", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not found", err.Error(), nil),
+		)
 		return
 	}
 
@@ -200,10 +238,18 @@ func (i *ItemController) GetPrivateItems(c *gin.Context) {
 	var item models.Item
 	pagination := services.GeneratePaginationFromRequest(c)
 
-	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, "Private", user.Email)
+	itemLists, totalRows, totalPages, err := itemModel.Pagination(
+		&item,
+		&pagination,
+		"Private",
+		user.Email,
+	)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil),
+		)
 		return
 	}
 
@@ -241,12 +287,18 @@ func (i *ItemController) UpdateItem(c *gin.Context) {
 	item, err := itemModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	if item.Owner != user.Email {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Update Item Failed", "You isn't owner of item", nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Update Item Failed", "You isn't owner of item", nil),
+		)
 		return
 	}
 
@@ -272,15 +324,22 @@ func (i *ItemController) UpdateItem(c *gin.Context) {
 		item.Image = input.Image
 	}
 
-	if input.Name == "" && input.Description == "" && input.Price == 0 && input.Currency == "" && input.Image == "" {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "Please provide info to update item", nil))
+	if input.Name == "" && input.Description == "" && input.Price == 0 && input.Currency == "" &&
+		input.Image == "" {
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Failed", "Please provide info to update item", nil),
+		)
 		return
 	}
 
 	err = itemModel.Update(item)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Delete Item Failed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Delete Item Failed", err.Error(), nil),
+		)
 		return
 	}
 
@@ -302,7 +361,10 @@ func (i *ItemController) BuyItem(c *gin.Context) {
 	item, err := itemModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not existed", err.Error(), nil),
+		)
 		return
 	}
 
@@ -311,11 +373,26 @@ func (i *ItemController) BuyItem(c *gin.Context) {
 		return
 	}
 
+	if item.Status == "Private" {
+		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "Item not on sale", nil))
+		return
+	}
+
 	hash := utils.NewSHA1Hash()
 
-	tx, err := txModel.Create(hash, item.Id, user.Email, item.Owner, item.Price, float64(item.Price)*0.1)
+	tx, err := txModel.Create(
+		hash,
+		item.Id,
+		user.Email,
+		item.Owner,
+		item.Price,
+		float64(item.Price)*0.1,
+	)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Transaction Failed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Transaction Failed", err.Error(), nil),
+		)
 		return
 	}
 
@@ -339,7 +416,10 @@ func (i *ItemController) GetPublicItems(c *gin.Context) {
 	itemLists, totalRows, totalPages, err := itemModel.Pagination(&item, &pagination, "Public")
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Failed when fetch pagination", err.Error(), nil),
+		)
 		return
 	}
 
@@ -375,12 +455,18 @@ func (i *ItemController) PutOnMarket(c *gin.Context) {
 	item, err := itemModel.FindByID(c.Params.ByName("id"))
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Item is not existed", err.Error(), nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Item is not existed", err.Error(), nil),
+		)
 		return
 	}
 
 	if item.Owner != user.Email {
-		c.JSON(http.StatusBadRequest, utils.BuildErrorResponse("Failed", "This is not your item", nil))
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Failed", "This is not your item", nil),
+		)
 		return
 	}
 

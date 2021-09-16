@@ -46,7 +46,7 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 		return
 	}
 
-	item, err := iModel.FindByID(auction.Id)
+	item, err := iModel.FindByID(auction.ItemId)
 
 	if err != nil {
 		c.JSON(
@@ -75,6 +75,7 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 	}
 	if input.FinalPrice != 0 && input.FinalPrice != auction.FinalPrice {
 		auction.FinalPrice = input.FinalPrice
+		item.Price = input.FinalPrice
 	}
 	if input.EndAt != 0 {
 		auction.EndAt = auction.CreatedAt.AddDate(0, 0, input.EndAt)
@@ -94,6 +95,16 @@ func (a *AuctionController) UpdateAuction(c *gin.Context) {
 		c.JSON(
 			http.StatusBadRequest,
 			utils.BuildErrorResponse("Update Auction Failed", err.Error(), nil),
+		)
+		return
+	}
+
+	err = iModel.Update(item)
+
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Update Item Price Failed", err.Error(), nil),
 		)
 		return
 	}
@@ -151,6 +162,16 @@ func (a *AuctionController) DeleteAuction(c *gin.Context) {
 		c.JSON(
 			http.StatusBadRequest,
 			utils.BuildErrorResponse("Delete Auction Failed", err.Error(), nil),
+		)
+		return
+	}
+
+	err = iModel.Delete(item.Id)
+
+	if err != nil {
+		c.JSON(
+			http.StatusBadRequest,
+			utils.BuildErrorResponse("Delete Item Failed", err.Error(), nil),
 		)
 		return
 	}

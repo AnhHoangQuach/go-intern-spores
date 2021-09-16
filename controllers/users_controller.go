@@ -91,7 +91,7 @@ func (u *UserController) VerifyUser(c *gin.Context) {
 		return
 	}
 
-	res := utils.BuildResponse(true, "Active User Success", input)
+	res := utils.BuildResponse(true, "Active User Success", nil)
 
 	c.JSON(http.StatusOK, res)
 }

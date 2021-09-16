@@ -39,7 +39,7 @@ func main() {
 
 	{
 		itemApi.POST("/", middlewares.Authenticate(), item.CreateItem)
-		itemApi.GET("/public", middlewares.Authenticate(), item.GetPublicItems)
+		itemApi.GET("/public", item.GetPublicItems)
 		itemApi.GET("/private", middlewares.Authenticate(), item.GetPrivateItems)
 		itemApi.GET("/:id", middlewares.Authenticate(), item.GetItem)
 		itemApi.PATCH("/:id", middlewares.Authenticate(), item.UpdateItem)
@@ -55,7 +55,6 @@ func main() {
 
 	{
 		auctionApi.PATCH("/:id", middlewares.Authenticate(), auction.UpdateAuction)
-		auctionApi.PUT("/:id", middlewares.Authenticate(), auction.UpdateAuction)
 		auctionApi.DELETE("/:id", middlewares.Authenticate(), auction.DeleteAuction)
 		auctionApi.POST("/:id/bid", middlewares.Authenticate(), auction.BidAuction)
 	}
@@ -65,8 +64,8 @@ func main() {
 	marketApi := r.Group("/market")
 
 	{
-		marketApi.GET("/revenue", middlewares.Authenticate(), market.TotalRevenue)
-		marketApi.GET("/users", middlewares.Authenticate(), market.TotalUserRegister)
+		marketApi.GET("/revenue", market.TotalRevenue)
+		marketApi.GET("/users", market.TotalUserRegister)
 		marketApi.GET("/items/newest", market.GetItemsNewest)
 		marketApi.GET("/auctions/newest", market.GetAuctionsNewest)
 		marketApi.GET("/auctions/hot", market.HotAuctions)
